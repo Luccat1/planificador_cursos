@@ -1,0 +1,35 @@
+{
+  "id": "periodo-demo",
+  "name": "Periodo de Demostración",
+  "timeBlocks": [
+    { "id": "1-2", "label": "1-2", "start": "08:15", "end": "09:25", "active": true },
+    { "id": "3-4", "label": "3-4", "start": "09:35", "end": "10:45", "active": true },
+    { "id": "5-6", "label": "5-6", "start": "11:00", "end": "12:10", "active": true },
+    { "id": "7-8", "label": "7-8", "start": "12:20", "end": "13:30", "active": true },
+    { "id": "9-10", "label": "9-10", "start": "14:30", "end": "15:40", "active": true },
+    { "id": "11-12", "label": "11-12", "start": "15:50", "end": "17:00", "active": true },
+    { "id": "13-14", "label": "13-14", "start": "17:10", "end": "18:20", "active": true }
+  ],
+  "teachers": [
+    { "id": "t1", "name": "Andrés", "active": true },
+    { "id": "t2", "name": "Sebastián", "active": true },
+    { "id": "t3", "name": "Ricardo", "active": true }
+  ],
+  "courses": [
+    { "id": "c1", "name": "Español 1", "teacherIds": ["t1"], "weeklySessions": 2, "blocksPerSession": 1, "active": true },
+    { "id": "c2", "name": "Español 2", "teacherIds": ["t2"], "weeklySessions": 2, "blocksPerSession": 1, "active": true },
+    { "id": "c3", "name": "Cultura Chilena", "teacherIds": ["t3"], "weeklySessions": 1, "blocksPerSession": 1, "active": true }
+  ],
+  "requirements": [
+    { "id": "r1", "courseId": "c1" },
+    { "id": "r2", "courseId": "c1" },
+    { "id": "r3", "courseId": "c2" },
+    { "id": "r4", "courseId": "c2" },
+    { "id": "r5", "courseId": "c3" }
+  ],
+  "conflictRules": [
+    { "id": "cr1", "courseAId": "c1", "courseBId": "c3", "reason": "Cultura Chilena no puede cruzarse con Español 1", "active": true },
+    { "id": "cr2", "courseAId": "c2", "courseBId": "c3", "reason": "Cultura Chilena no puede cruzarse con Español 2", "active": true }
+  ],
+  "preferences": []
+}
