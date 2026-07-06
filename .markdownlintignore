@@ -1,0 +1,7 @@
+LICENSE
+dist/
+node_modules/
+.gemini/
+.superpowers/
+work/
+outputs/

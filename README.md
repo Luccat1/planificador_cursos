@@ -6,7 +6,7 @@
 
 ## 📢 Transparencia y Declaración de Contexto (Vibecoded Project)
 
-Este es un proyecto desarrollado bajo la modalidad **Vibecoded** (creado y modificado con asistencia directa de Inteligencia Artificial). 
+Este es un proyecto desarrollado bajo la modalidad **Vibecoded** (creado y modificado con asistencia directa de Inteligencia Artificial).
 
 * **Sobre el autor:** Este programa es mantenido por **Luciano Cataldo** (no soy programador profesional ni pretendo parecerlo).
 * **Propósito:** Desarrollar soluciones sencillas de forma ágil para uso local e interno de nuestro equipo de trabajo. Usamos GitHub simplemente como un repositorio para respaldar el código y colaborar internamente.
@@ -31,34 +31,45 @@ Este es un proyecto desarrollado bajo la modalidad **Vibecoded** (creado y modif
 Sigue estos sencillos pasos para hacer funcionar la aplicación en tu computadora local:
 
 ### Paso 1: Instalar Node.js
+
 Para que este programa funcione, necesitas una herramienta base llamada **Node.js**.
+
 1. Ve a la página oficial de descargas: [https://nodejs.org](https://nodejs.org).
 2. Descarga la versión recomendada para la mayoría de los usuarios (normalmente indicada como **LTS**).
 3. Abre el archivo descargado y sigue las instrucciones de instalación en pantalla (siguiente, siguiente, finalizar).
 
 ### Paso 2: Descargar el Código
+
 Si no usas Git o la consola de comandos de GitHub:
+
 1. Haz clic en el botón verde **"Code"** en la parte superior de esta página de GitHub.
 2. Selecciona la opción **"Download ZIP"** (Descargar archivo comprimido).
 3. Descomprime el archivo `.zip` en la carpeta de tu computadora donde desees guardar el proyecto (por ejemplo, en tus Documentos).
 
 ### Paso 3: Instalar Dependencias y Arrancar la Aplicación
+
 1. Abre la terminal o consola de tu sistema operativo:
    * **En Windows:** Presiona la tecla `Windows`, escribe `cmd` o `PowerShell` y presiona Enter.
-2. Navega hasta la carpeta del proyecto. Por ejemplo, si lo guardaste en tu carpeta de Documentos, escribe el siguiente comando en la terminal y presiona Enter:
+2. Navega hasta la carpeta del proyecto. Por ejemplo, si lo guardaste en tu carpeta de Documentos, escribe the following command en la terminal y presiona Enter:
+
    ```bash
    cd Documents/planificador_cursos
    ```
+
 3. Instala los paquetes necesarios del programa escribiendo lo siguiente y presionando Enter:
+
    ```bash
    npm install
    ```
+
    *(Este paso descargará automáticamente los componentes visuales e internos de la aplicación y solo necesitas hacerlo la primera vez)*.
 
 4. Inicia la aplicación escribiendo este comando y presionando Enter:
+
    ```bash
    npm run dev
    ```
+
 5. En la consola verás un mensaje con un enlace similar a `http://localhost:5173`. Abre tu navegador web favorito (Chrome, Edge, Firefox, Safari) e ingresa a esa dirección para empezar a planificar.
 
 ---
@@ -68,15 +79,19 @@ Si no usas Git o la consola de comandos de GitHub:
 Si deseas realizar modificaciones en el código o verificar la integridad del proyecto, puedes usar los siguientes comandos en la consola:
 
 * **Ejecutar Pruebas Unitarias:**
+
   ```bash
   npm test
   ```
+
   *(Corre las 13 pruebas automatizadas de lógica de validación, scheduler, exportador de Excel e importador JSON)*.
 
 * **Compilar para Producción:**
+
   ```bash
   npm run build
   ```
+
   *(Crea un paquete de archivos HTML, CSS y JS optimizado en la carpeta `/dist`)*.
 
 ---
@@ -86,5 +101,5 @@ Si deseas realizar modificaciones en el código o verificar la integridad del pr
 Este proyecto está bajo la **Licencia MIT**. Puedes usarlo, modificarlo y distribuirlo libremente para fines comerciales y privados, siempre que mantengas los créditos correspondientes.
 
 * **Titular de la licencia:** Luciano Cataldo  
-* **Contacto:** lcataldoalvarado@gmail.com  
+* **Contacto:** <lcataldoalvarado@gmail.com>  
 * **GitHub:** [@luccat1](https://github.com/luccat1)
