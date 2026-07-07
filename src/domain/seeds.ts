@@ -22,3 +22,71 @@ export function createDefaultPeriod(name: string): Period {
     preferences: [],
   };
 }
+
+export function createDemoPeriod(): Period {
+  return {
+    id: "periodo-demo",
+    name: "Periodo Demostrativo (Ejemplo)",
+    timeBlocks: [...DEFAULT_TIME_BLOCKS],
+    teachers: [
+      {
+        id: "t-1",
+        name: "Andres Sepulveda",
+        active: true,
+        availability: {
+          monday: ["1-2", "3-4"],
+          wednesday: ["1-2", "3-4"]
+        }
+      },
+      {
+        id: "t-2",
+        name: "Marta Gomez",
+        active: true,
+        availability: {
+          tuesday: ["1-2", "3-4", "5-6"],
+          thursday: ["1-2", "3-4", "5-6"]
+        }
+      }
+    ],
+    courses: [
+      {
+        id: "c-1",
+        name: "Matematicas I",
+        teacherIds: ["t-1"],
+        weeklySessions: 2,
+        blocksPerSession: 2,
+        active: true
+      },
+      {
+        id: "c-2",
+        name: "Fisica I",
+        teacherIds: ["t-2"],
+        weeklySessions: 1,
+        blocksPerSession: 2,
+        active: true
+      }
+    ],
+    requirements: [],
+    conflictRules: [
+      {
+        id: "cr-1",
+        courseAId: "c-1",
+        courseBId: "c-2",
+        reason: "Cursos del mismo semestre",
+        active: true
+      }
+    ],
+    preferences: [
+      {
+        id: "p-1",
+        scope: "teacher",
+        targetId: "t-1",
+        kind: "preferMorning",
+        value: "",
+        weight: 5,
+        active: true
+      }
+    ]
+  };
+}
+

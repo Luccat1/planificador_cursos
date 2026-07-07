@@ -145,7 +145,7 @@ export default function ScheduleGrid({
         return (
           <div key={day.key} style={{
             flex: 1,
-            minWidth: "150px",
+            minWidth: "200px",
             display: "flex",
             flexDirection: "column",
             borderLeft: "1px solid var(--border-color)",
@@ -205,6 +205,7 @@ export default function ScheduleGrid({
                       e.stopPropagation();
                       onSelectSession(session);
                     }}
+                    className="session-card-wrapper"
                     style={{
                       position: "absolute",
                       top: `${topPosition}px`,
@@ -213,8 +214,7 @@ export default function ScheduleGrid({
                       width: `${width}%`,
                       padding: "4px",
                       zIndex: isSelected ? 10 : 5,
-                      boxSizing: "border-box",
-                      transition: "all var(--transition-fast)"
+                      boxSizing: "border-box"
                     }}
                   >
                     <div

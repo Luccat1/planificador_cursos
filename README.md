@@ -74,6 +74,64 @@ Si no usas Git o la consola de comandos de GitHub:
 
 ---
 
+## 📊 Manual del Formato Excel de Importación
+
+Para facilitar la carga masiva de datos de profesores, cursos y disponibilidades, puedes usar el botón **"Descargar Plantilla"** en la interfaz para obtener un archivo Excel de ejemplo (`plantilla_ejemplo.xlsx`) pre-formateado.
+
+El archivo Excel consta de las siguientes pestañas, cada una con una fila explicativa de ejemplo (iniciada con `Ej:`) que el sistema omite automáticamente al importar:
+
+### 1. Profesores
+Define los docentes disponibles en tu periodo.
+* **`id`** *(Obligatorio)*: Identificador único sin espacios (ej: `t-1`, `profe-juan`).
+* **`nombre`** *(Obligatorio)*: Nombre completo del docente.
+* **`activo`** *(Obligatorio)*: Escribe `SÍ` o `NO` para indicar si debe considerarse en la planificación.
+
+### 2. Disponibilidad
+Configura las ventanas de tiempo en las que cada docente puede dictar clases. **Si un docente no se incluye en esta pestaña, el sistema asume que tiene disponibilidad completa.**
+* **`profesor_id`** *(Obligatorio)*: El ID del docente (debe coincidir exactamente con el de la hoja *Profesores*).
+* **`dia`** *(Obligatorio)*: Día de la semana en español (`Lunes`, `Martes`, `Miércoles`, `Jueves` o `Viernes`).
+* **`clave_id`** *(Obligatorio)*: Código de la clave horaria de ese día (debe coincidir con la hoja *Claves horarias*, ej: `1-2`).
+
+### 3. Cursos
+Registra las asignaturas del periodo.
+* **`id`** *(Obligatorio)*: Identificador único de la asignatura sin espacios (ej: `c-101`, `calc-1`).
+* **`nombre`** *(Obligatorio)*: Nombre legible de la asignatura (ej: *Matemáticas I*).
+* **`profesores`** *(Obligatorio)*: IDs de los profesores asignados separados por coma (ej: `t-1` o `t-1, t-2`).
+* **`sesiones_semana`** *(Obligatorio)*: Número de veces que se dicta la clase en la semana (ej: `2`).
+* **`claves_por_sesion`** *(Obligatorio)*: Duración de cada clase medida en bloques consecutivos (ej: `2` para clases dobles).
+* **`activo`** *(Obligatorio)*: Escribe `SÍ` o `NO`.
+
+### 4. Claves horarias
+Establece los bloques o módulos de tu jornada.
+* **`id`** *(Obligatorio)*: Código único del bloque sin espacios (ej: `1-2`).
+* **`clave`** *(Obligatorio)*: Nombre/Etiqueta visible del bloque en el horario (ej: `1-2`).
+* **`inicio`** *(Obligatorio)*: Hora de inicio en formato `HH:MM` (ej: `08:15`).
+* **`termino`** *(Obligatorio)*: Hora de término en formato `HH:MM` (ej: `09:25`).
+* **`activo`** *(Obligatorio)*: `SÍ` o `NO`.
+
+### 5. Restricciones
+Evita que cursos específicos coincidan en el mismo bloque de horario (por ejemplo, ramos del mismo año).
+* **`id`** *(Obligatorio)*: Código único de la regla (ej: `cr-1`).
+* **`curso_a`** y **`curso_b`** *(Obligatorios)*: IDs de los dos cursos que no deben chocar.
+* **`motivo`**: Razón de la incompatibilidad.
+* **`activo`**: `SÍ` o `NO`.
+
+### 6. Preferencias
+Indica prioridades blandas al algoritmo.
+* **`id`**: Código único de la preferencia.
+* **`alcance`**: Escribe `period` (general), `course` (un curso) o `teacher` (un profesor).
+* **`objetivo`**: ID del curso o profesor al que aplica (dejar vacío si el alcance es `period`).
+* **`tipo`**: Elige uno de:
+  - `preferMorning` (preferir las primeras horas del día)
+  - `preferDay` (preferir un día específico)
+  - `avoidDay` (evitar un día específico)
+  - `spreadSessions` (distribuir las sesiones en días separados)
+* **`valor`**: Si elegiste `preferDay` o `avoidDay`, escribe el día en inglés en minúscula (`monday`, `tuesday`, `wednesday`, `thursday`, `friday`).
+* **`peso`**: Prioridad numérica (ej: `5` para alta, `1` para baja).
+* **`activo`**: `SÍ` o `NO`.
+
+---
+
 ## 🛠️ Comandos de Desarrollo (Para uso técnico)
 
 Si deseas realizar modificaciones en el código o verificar la integridad del proyecto, puedes usar los siguientes comandos en la consola:

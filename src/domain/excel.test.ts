@@ -17,4 +17,15 @@ describe("Excel Storage", () => {
     expect(parsed.timeBlocks).toHaveLength(samplePeriod.timeBlocks.length);
     expect(parsed.conflictRules).toHaveLength(samplePeriod.conflictRules.length);
   });
+
+  it("filters out description rows starting with 'Ej:'", () => {
+    const buffer = buildExcelTemplate(samplePeriod);
+    const parsed = parseExcelTemplate(buffer);
+
+    const hasDescriptionRow = parsed.teachers.some(t => t.id.startsWith("Ej:") || t.name.startsWith("Ej:"));
+    expect(hasDescriptionRow).toBe(false);
+
+    const hasDescriptionCourse = parsed.courses.some(c => c.id.startsWith("Ej:") || c.name.startsWith("Ej:"));
+    expect(hasDescriptionCourse).toBe(false);
+  });
 });

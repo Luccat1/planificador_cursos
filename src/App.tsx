@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { createDefaultPeriod } from "./domain/seeds";
+import { createDefaultPeriod, createDemoPeriod } from "./domain/seeds";
 import { generateScheduleProposals } from "./domain/scheduler";
 import { serializePeriod, parsePeriodJson } from "./domain/storage";
 import { buildExcelTemplate, parseExcelTemplate } from "./domain/excel";
+import { validatePeriod } from "./domain/validation";
 import { Period, ScheduleProposal, PlacedSession, Weekday } from "./domain/types";
 import ScheduleGrid from "./components/ScheduleGrid";
 import SidePanel from "./components/SidePanel";
@@ -76,6 +77,24 @@ export default function App() {
     }
   };
 
+  const handleDownloadDemoExcel = () => {
+    try {
+      const demoPeriod = createDemoPeriod();
+      const buffer = buildExcelTemplate(demoPeriod);
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `plantilla_ejemplo.xlsx`;
+      link.click();
+      
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar plantilla de ejemplo: " + (err as Error).message);
+    }
+  };
+
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileReader = new FileReader();
     const files = e.target.files;
@@ -85,7 +104,19 @@ export default function App() {
       try {
         const buffer = event.target?.result as ArrayBuffer;
         const parsed = parseExcelTemplate(buffer);
-        // Retain original name/ID if wanted, or use imported name
+
+        // Validar el periodo importado antes de aplicarlo
+        const issues = validatePeriod(parsed);
+        const errors = issues.filter(issue => issue.severity === "error");
+        
+        if (errors.length > 0) {
+          const errorMsg = errors.map((e, idx) => `${idx + 1}. [Código: ${e.code}] ${e.message}`).join("\n");
+          alert(`No se pudo cargar la plantilla Excel debido a errores críticos de validación:\n\n${errorMsg}`);
+          return;
+        }
+
+        const warnings = issues.filter(issue => issue.severity === "warning" || issue.severity === "conflict");
+        
         setPeriod({
           ...parsed,
           name: `Importado de Excel (${period.name})`,
@@ -95,7 +126,13 @@ export default function App() {
         setSelectedProposal(null);
         setSelectedSession(null);
         setSelectedSlot(null);
-        alert("Plantilla Excel importada correctamente.");
+
+        if (warnings.length > 0) {
+          const warningMsg = warnings.map((w, idx) => `${idx + 1}. ${w.message}`).join("\n");
+          alert(`Plantilla Excel importada con advertencias:\n\n${warningMsg}`);
+        } else {
+          alert("Plantilla Excel importada correctamente sin errores.");
+        }
       } catch (err) {
         alert("Error al importar plantilla Excel: " + (err as Error).message);
       }
@@ -165,6 +202,9 @@ export default function App() {
               <Upload size={14} /> Importar JSON
               <input type="file" accept=".json" onChange={handleImportJson} style={{ display: "none" }} />
             </label>
+            <button className="btn btn-primary btn-sm" onClick={handleDownloadDemoExcel}>
+              <Download size={14} /> Descargar Plantilla
+            </button>
             <button className="btn btn-secondary btn-sm" onClick={handleExportExcel}>
               <Download size={14} /> Exportar Excel
             </button>
@@ -212,6 +252,7 @@ export default function App() {
                 <li>Registra <strong>Preferencias</strong> para priorizar mañana/tarde o días de profesores.</li>
                 <li>Presiona <strong>Generar propuesta</strong> para calcular el mejor horario.</li>
                 <li>Haz clic en una sesión del horario para <strong>bloquearla (🔒)</strong>; no cambiará en próximas generaciones.</li>
+                <li>Usa <strong>Exportar Excel</strong> para descargar una plantilla con el formato correcto, edítala (puedes definir disponibilidades en la hoja <em>Disponibilidad</em>) e impórtala de vuelta con <strong>Importar Excel</strong>.</li>
               </ul>
             </div>
           </div>

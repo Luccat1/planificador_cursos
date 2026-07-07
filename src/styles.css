@@ -303,6 +303,23 @@ body {
   border-left-color: var(--info-color);
 }
 
+.session-card-wrapper {
+  transition: width var(--transition-normal), z-index var(--transition-fast);
+}
+
+.session-card-wrapper:hover {
+  width: 220px !important;
+  z-index: 100 !important;
+}
+
+.session-card-wrapper:hover .session-title,
+.session-card-wrapper:hover .session-teachers {
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .session-title {
   font-weight: 600;
   color: var(--text-primary);
@@ -315,6 +332,9 @@ body {
   color: var(--text-secondary);
   font-size: 0.7rem;
   margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-status {
