@@ -1,5 +1,16 @@
 import * as XLSX from "xlsx";
-import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference } from "./types";
+import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, Weekday } from "./types";
+
+function translateDayToSpanish(day: string): string {
+  const translations: Record<string, string> = {
+    monday: "Lunes",
+    tuesday: "Martes",
+    wednesday: "Miércoles",
+    thursday: "Jueves",
+    friday: "Viernes"
+  };
+  return translations[day] || day;
+}
 
 export function buildExcelTemplate(period: Period): ArrayBuffer {
   const wb = XLSX.utils.book_new();
@@ -60,6 +71,25 @@ export function buildExcelTemplate(period: Period): ArrayBuffer {
   const wsPrefs = XLSX.utils.json_to_sheet(prefsData);
   XLSX.utils.book_append_sheet(wb, wsPrefs, "Preferencias");
 
+  // 6. Disponibilidad de Docentes
+  const availabilityData: any[] = [];
+  for (const t of period.teachers) {
+    if (t.availability) {
+      for (const day of Object.keys(t.availability) as Weekday[]) {
+        const blocks = t.availability[day] || [];
+        for (const blockId of blocks) {
+          availabilityData.push({
+            profesor_id: t.id,
+            dia: translateDayToSpanish(day),
+            clave_id: blockId
+          });
+        }
+      }
+    }
+  }
+  const wsAvailability = XLSX.utils.json_to_sheet(availabilityData);
+  XLSX.utils.book_append_sheet(wb, wsAvailability, "Disponibilidad");
+
   const out = XLSX.write(wb, { type: "array", bookType: "xlsx" });
   return out;
 }
@@ -73,15 +103,51 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
   const conflictRules: CourseConflictRule[] = [];
   const preferences: Preference[] = [];
 
+  // Parse Disponibilidad first
+  const spanishToEnglishDay: Record<string, Weekday> = {
+    "lunes": "monday",
+    "martes": "tuesday",
+    "miércoles": "wednesday",
+    "miercoles": "wednesday",
+    "jueves": "thursday",
+    "viernes": "friday"
+  };
+
+  const teacherAvailabilities = new Map<string, { [day in Weekday]?: string[] }>();
+  if (wb.SheetNames.includes("Disponibilidad")) {
+    const data = XLSX.utils.sheet_to_json<any>(wb.Sheets["Disponibilidad"]);
+    for (const row of data) {
+      const teacherId = String(row.profesor_id || "").trim();
+      const spanishDay = String(row.dia || "").trim().toLowerCase();
+      const blockId = String(row.clave_id || "").trim();
+
+      const day = spanishToEnglishDay[spanishDay];
+      if (teacherId && day && blockId) {
+        if (!teacherAvailabilities.has(teacherId)) {
+          teacherAvailabilities.set(teacherId, {});
+        }
+        const avail = teacherAvailabilities.get(teacherId)!;
+        if (!avail[day]) {
+          avail[day] = [];
+        }
+        if (!avail[day]!.includes(blockId)) {
+          avail[day]!.push(blockId);
+        }
+      }
+    }
+  }
+
   // Parse Profesores
   if (wb.SheetNames.includes("Profesores")) {
     const data = XLSX.utils.sheet_to_json<any>(wb.Sheets["Profesores"]);
     for (const row of data) {
       if (row.id && row.nombre) {
+        const teacherId = String(row.id).trim();
         teachers.push({
-          id: String(row.id).trim(),
+          id: teacherId,
           name: String(row.nombre).trim(),
-          active: parseBoolean(row.activo)
+          active: parseBoolean(row.activo),
+          availability: teacherAvailabilities.get(teacherId)
         });
       }
     }

@@ -144,6 +144,20 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
         if (!teacherBookings.get(key)!.some(s => s.requirementId === session.requirementId)) {
           teacherBookings.get(key)!.push(session);
         }
+
+        // TEACHER_UNAVAILABLE: check teacher availability
+        const teacher = period.teachers.find(t => t.id === teacherId);
+        if (teacher && teacher.availability) {
+          const availableBlocks = teacher.availability[session.day] || [];
+          if (!availableBlocks.includes(bId)) {
+            issues.push({
+              severity: "conflict",
+              code: "TEACHER_UNAVAILABLE",
+              message: `El profesor '${teacher.name}' no está disponible el ${translateDay(session.day)} en el bloque '${bId}'.`,
+              entityIds: [session.requirementId, teacherId, bId]
+            });
+          }
+        }
       }
 
       // Track courses in slot

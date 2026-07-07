@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, PreferenceScope, PreferenceKind } from "../domain/types";
+import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, PreferenceScope, PreferenceKind, Weekday } from "../domain/types";
 
 interface DataTablesProps {
   period: Period;
@@ -10,6 +10,17 @@ type TabType = "teachers" | "courses" | "blocks" | "rules" | "preferences";
 
 export default function DataTables({ period, onChangePeriod }: DataTablesProps) {
   const [activeTab, setActiveTab] = useState<TabType>("teachers");
+  const [editingAvailabilityTeacherId, setEditingAvailabilityTeacherId] = useState<string | null>(null);
+
+  const getAvailabilitySummary = (t: Teacher) => {
+    if (!t.availability) return "Completa";
+    let count = 0;
+    for (const day of Object.keys(t.availability)) {
+      count += t.availability[day as Weekday]?.length || 0;
+    }
+    if (count === 0) return "Ninguna";
+    return `Restringida (${count} bloque(s))`;
+  };
 
   // Form states
   const [teacherName, setTeacherName] = useState("");
@@ -214,57 +225,223 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
 
       <div style={{ flex: 1, overflowY: "auto", minHeight: "300px" }}>
         {activeTab === "teachers" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <form onSubmit={handleAddTeacher} style={{ display: "flex", gap: "1rem", alignItems: "flex-end" }}>
-              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-                <label>Nombre del Profesor</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Ej. Andrés Sepúlveda"
-                  value={teacherName}
-                  onChange={e => setTeacherName(e.target.value)}
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">Agregar</button>
-            </form>
+          editingAvailabilityTeacherId ? (
+            (() => {
+              const activeBlocks = period.timeBlocks.filter(b => b.active);
+              const teacher = period.teachers.find(t => t.id === editingAvailabilityTeacherId);
+              if (!teacher) return null;
 
-            <div className="data-table-container">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Estado</th>
-                    <th>Nombre</th>
-                    <th style={{ textAlign: "right" }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {period.teachers.map(t => (
-                    <tr key={t.id}>
-                      <td>
-                        <label className="checkbox-container">
-                          <input type="checkbox" checked={t.active} onChange={() => toggleTeacherActive(t.id)} />
-                          <div className="checkbox-box"></div>
-                          <span>{t.active ? "Activo" : "Inactivo"}</span>
-                        </label>
-                      </td>
-                      <td>{t.name}</td>
-                      <td style={{ textAlign: "right" }}>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTeacher(t.id)}>Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {period.teachers.length === 0 && (
+              const availability = teacher.availability || {};
+
+              const handleToggleSlot = (day: Weekday, blockId: string) => {
+                const currentSlots = availability[day] || [];
+                let newSlots: string[];
+                if (currentSlots.includes(blockId)) {
+                  newSlots = currentSlots.filter(id => id !== blockId);
+                } else {
+                  newSlots = [...currentSlots, blockId];
+                }
+
+                const updatedAvailability = {
+                  ...availability,
+                  [day]: newSlots
+                };
+
+                const updatedTeachers = period.teachers.map(t => {
+                  if (t.id === teacher.id) {
+                    return {
+                      ...t,
+                      availability: updatedAvailability
+                    };
+                  }
+                  return t;
+                });
+
+                updatePeriod({ teachers: updatedTeachers });
+              };
+
+              const handleMarkAllAvailable = () => {
+                const updatedTeachers = period.teachers.map(t => {
+                  if (t.id === teacher.id) {
+                    const { availability: _, ...rest } = t;
+                    return rest;
+                  }
+                  return t;
+                });
+                updatePeriod({ teachers: updatedTeachers });
+              };
+
+              const handleClearAll = () => {
+                const emptyAvailability: Record<string, string[]> = {
+                  monday: [],
+                  tuesday: [],
+                  wednesday: [],
+                  thursday: [],
+                  friday: []
+                };
+                const updatedTeachers = period.teachers.map(t => {
+                  if (t.id === teacher.id) {
+                    return {
+                      ...t,
+                      availability: emptyAvailability
+                    };
+                  }
+                  return t;
+                });
+                updatePeriod({ teachers: updatedTeachers });
+              };
+
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <h3 style={{ fontFamily: "var(--font-title)", fontSize: "1.2rem", fontWeight: 600 }}>Configurar Disponibilidad</h3>
+                      <p style={{ fontSize: "0.95rem", color: "var(--accent-color)", fontWeight: "bold" }}>
+                        Docente: {teacher.name}
+                      </p>
+                    </div>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingAvailabilityTeacherId(null)}>
+                      Volver
+                    </button>
+                  </div>
+
+                  <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    Marca los bloques en los que el profesor <strong>está disponible</strong>. Si no marcas ningún bloque, el sistema asumirá que tiene <strong>disponibilidad completa (por defecto)</strong>.
+                  </p>
+
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleMarkAllAvailable}>
+                      Disponibilidad Completa (Por defecto)
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: "var(--error-color)", color: "var(--error-color)" }} onClick={handleClearAll}>
+                      Limpiar Todo (No disponible)
+                    </button>
+                  </div>
+
+                  <div className="data-table-container">
+                    <table className="data-table" style={{ width: "100%", tableLayout: "fixed" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: "120px" }}>Bloque / Hora</th>
+                          <th>Lunes</th>
+                          <th>Martes</th>
+                          <th>Miércoles</th>
+                          <th>Jueves</th>
+                          <th>Viernes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeBlocks.map(block => (
+                          <tr key={block.id}>
+                            <td style={{ fontWeight: 500 }}>
+                              <div>{block.label}</div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{block.start} - {block.end}</div>
+                            </td>
+                            {(["monday", "tuesday", "wednesday", "thursday", "friday"] as Weekday[]).map(day => {
+                              const isConfigured = teacher.availability !== undefined;
+                              const isAvailable = !isConfigured || (teacher.availability?.[day] || []).includes(block.id);
+
+                              return (
+                                <td
+                                  key={day}
+                                  onClick={() => handleToggleSlot(day, block.id)}
+                                  style={{
+                                    cursor: "pointer",
+                                    backgroundColor: isAvailable ? "rgba(16, 185, 129, 0.15)" : "transparent",
+                                    color: isAvailable ? "var(--success-color)" : "var(--text-muted)",
+                                    textAlign: "center",
+                                    fontWeight: 600,
+                                    fontSize: "0.8rem",
+                                    transition: "all var(--transition-fast)",
+                                    border: "1px solid var(--border-color)",
+                                    userSelect: "none"
+                                  }}
+                                >
+                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.25rem" }}>
+                                    <span>{isAvailable ? "✓ Disponible" : "No disponible"}</span>
+                                    {!isConfigured && <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: "normal" }}>(Por defecto)</span>}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                        {activeBlocks.length === 0 && (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: "center", color: "var(--text-secondary)" }}>
+                              No hay claves horarias activas configuradas.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <form onSubmit={handleAddTeacher} style={{ display: "flex", gap: "1rem", alignItems: "flex-end" }}>
+                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Nombre del Profesor</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Ej. Andrés Sepúlveda"
+                    value={teacherName}
+                    onChange={e => setTeacherName(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">Agregar</button>
+              </form>
+
+              <div className="data-table-container">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <td colSpan={3} style={{ textAlign: "center", color: "var(--text-secondary)" }}>
-                        No hay profesores registrados.
-                      </td>
+                      <th>Estado</th>
+                      <th>Nombre</th>
+                      <th>Disponibilidad</th>
+                      <th style={{ textAlign: "right" }}>Acciones</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {period.teachers.map(t => (
+                      <tr key={t.id}>
+                        <td>
+                          <label className="checkbox-container">
+                            <input type="checkbox" checked={t.active} onChange={() => toggleTeacherActive(t.id)} />
+                            <div className="checkbox-box"></div>
+                            <span>{t.active ? "Activo" : "Inactivo"}</span>
+                          </label>
+                        </td>
+                        <td>{t.name}</td>
+                        <td>{getAvailabilitySummary(t)}</td>
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            style={{ marginRight: "0.5rem" }}
+                            onClick={() => setEditingAvailabilityTeacherId(t.id)}
+                          >
+                            Disponibilidad
+                          </button>
+                          <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteTeacher(t.id)}>Eliminar</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {period.teachers.length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: "center", color: "var(--text-secondary)" }}>
+                          No hay profesores registrados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {activeTab === "courses" && (

@@ -30,6 +30,37 @@ describe("Validation", () => {
     expect(issues).toContainEqual(expect.objectContaining({ code: "COURSE_CONFLICT" }));
   });
 
+  it("detects teacher availability conflicts", () => {
+    const periodWithAvailability = {
+      ...samplePeriod,
+      teachers: [
+        {
+          id: "t1",
+          name: "Andres",
+          active: true,
+          availability: {
+            monday: ["1-2"]
+          }
+        },
+        ...samplePeriod.teachers.filter(t => t.id !== "t1")
+      ]
+    };
+
+    // Case A: Placed session on Monday in block "1-2" (within availability) -> no issues
+    const validSession = [
+      { requirementId: "r1", courseId: "c1", day: "monday" as const, blockId: "1-2", teacherIds: ["t1"], state: "draft" as const }
+    ];
+    const noIssues = validatePlacedSessions(periodWithAvailability, validSession);
+    expect(noIssues.filter(i => i.code === "TEACHER_UNAVAILABLE")).toHaveLength(0);
+
+    // Case B: Placed session on Tuesday in block "1-2" (outside availability) -> should report conflict
+    const invalidSession = [
+      { requirementId: "r1", courseId: "c1", day: "tuesday" as const, blockId: "1-2", teacherIds: ["t1"], state: "draft" as const }
+    ];
+    const issues = validatePlacedSessions(periodWithAvailability, invalidSession);
+    expect(issues).toContainEqual(expect.objectContaining({ code: "TEACHER_UNAVAILABLE" }));
+  });
+
   it("returns no issues for valid configuration", () => {
     const periodIssues = validatePeriod(samplePeriod);
     expect(periodIssues.filter(i => i.severity === "error")).toHaveLength(0);

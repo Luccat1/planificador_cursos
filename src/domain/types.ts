@@ -15,6 +15,7 @@ export interface Teacher {
   id: string;
   name: string;
   active: boolean;
+  availability?: { [day in Weekday]?: string[] };
 }
 
 export interface Course {
