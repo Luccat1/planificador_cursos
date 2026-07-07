@@ -1,156 +1,172 @@
 # 📅 Planificador de Cursos
 
-¡Bienvenido al **Planificador de Cursos**! Esta es una aplicación web de uso local diseñada para planificar horarios semanales de asignaturas de forma sencilla y visual. Permite gestionar profesores, cursos (incluso con sesiones de múltiples bloques de duración), configurar reglas de incompatibilidad entre cursos, establecer preferencias y generar propuestas de horarios automáticas optimizadas que resuelven los conflictos de agenda.
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+Una aplicación web interactiva y local para la **planificación inteligente de horarios académicos**. Optimiza la distribución de bloques horarios resolviendo conflictos de disponibilidad docente, colisiones de asignaturas y preferencias pedagógicas a través de un algoritmo avanzado de backtracking.
 
 ---
 
-## 📢 Transparencia y Declaración de Contexto (Vibecoded Project)
+## 📋 Tabla de Contenidos
 
-Este es un proyecto desarrollado bajo la modalidad **Vibecoded** (creado y modificado con asistencia directa de Inteligencia Artificial).
-
-* **Sobre el autor:** Este programa es mantenido por **Luciano Cataldo** (no soy programador profesional ni pretendo parecerlo).
-* **Propósito:** Desarrollar soluciones sencillas de forma ágil para uso local e interno de nuestro equipo de trabajo. Usamos GitHub simplemente como un repositorio para respaldar el código y colaborar internamente.
-* **Licencia de uso:** Licencia MIT (puedes ver más abajo o en el archivo [LICENSE](file:///c:/Users/Usuario/Documents/code/planificador_cursos/LICENSE)).
-
----
-
-## ✨ Funcionalidades Principales
-
-* **Grilla Semanal Interactiva:** Muestra el horario generado de lunes a viernes, ordenado por bloques horarios configurables.
-* **Soporte de Múltiples Bloques:** Permite que un curso dure 1, 2 o más bloques consecutivos de clase, impidiendo traslapes y calculando el espacio necesario.
-* **Visualización Inteligente Lado a Lado:** Si programas dos clases a la misma hora que no entran en conflicto (por ejemplo, tienen diferentes profesores y salas libres), la aplicación las mostrará una al lado de la otra de forma limpia.
-* **Motor de Planificación Automática:** Utiliza un algoritmo inteligente (backtracking) para explorar todas las combinaciones posibles de horarios, descartar las que tienen conflictos de profesores o materias incompatibles, y ordenar las mejores opciones basándose en tus preferencias (ej. preferir mañanas, evitar ciertos días o distribuir clases en días distintos).
-* **Bloqueos Manuales (Locks):** Puedes hacer clic en cualquier curso del calendario y **bloquear su horario (🔒)**. La aplicación respetará tu decisión y no moverá ese curso al generar nuevas propuestas de horario automáticas.
-* **Respaldos en JSON:** Guarda y carga todo tu trabajo en un único archivo de respaldo (`.json`).
-* **Plantilla de Excel:** Exporta o importa todos tus datos maestros (profesores, cursos, bloques, reglas y preferencias) directamente desde una hoja de cálculo en español compatible con Excel.
+- [✨ Características Principales](#-características-principales)
+- [🚀 Inicio Rápido](#-inicio-rápido)
+  - [Prerrequisitos](#prerrequisitos)
+  - [Instalación y Uso](#instalación-y-uso)
+- [💡 Flujo de Trabajo Recomendado](#-flujo-de-trabajo-recomendado)
+- [📊 Manual del Formato Excel de Importación](#-manual-del-formato-excel-de-importación)
+  - [Tabla Resumen de Hojas](#tabla-resumen-de-hojas)
+  - [Especificación de Columnas](#especificación-de-columnas)
+- [🛠️ Comandos de Desarrollo](#️-comandos-de-desarrollo)
+- [📢 Declaración de Contexto (Vibecoded)](#-declaración-de-contexto-vibecoded)
+- [📄 Licencia](#-licencia)
 
 ---
 
-## 🚀 Guía de Inicio (Para personas que no entienden de programación)
+## ✨ Características Principales
 
-Sigue estos sencillos pasos para hacer funcionar la aplicación en tu computadora local:
+*   **⚡ Grilla Semanal Interactiva:** Calendario semanal de lunes a viernes segmentado por módulos horarios flexibles y editables.
+*   **🧩 Soporte para Clases Multi-Bloque:** Configuración de asignaturas con duraciones variables (bloques simples, dobles o más) garantizando la continuidad en la agenda.
+*   **⚖️ Visualización Paralela Adaptable:** Distribución automática lado a lado para clases simultáneas sin conflicto (ej. distintos profesores y salas libres), maximizando la legibilidad.
+*   **🤖 Algoritmo de Resolución Automática (Backtracking):** Generador inteligente que explora miles de combinaciones para proponer los mejores horarios, respetando restricciones estrictas y priorizando preferencias.
+*   **🔒 Bloqueos Manuales en Caliente:** Permite fijar (🔒) cualquier curso propuesto en la grilla para que permanezca inamovible en futuras optimizaciones del algoritmo.
+*   **📥 Respaldos Seguros:** Exportación e importación completa del estado de la aplicación mediante archivos JSON y hojas de cálculo compatibles con Excel.
 
-### Paso 1: Instalar Node.js
+---
 
-Para que este programa funcione, necesitas una herramienta base llamada **Node.js**.
+## 🚀 Inicio Rápido
 
-1. Ve a la página oficial de descargas: [https://nodejs.org](https://nodejs.org).
-2. Descarga la versión recomendada para la mayoría de los usuarios (normalmente indicada como **LTS**).
-3. Abre el archivo descargado y sigue las instrucciones de instalación en pantalla (siguiente, siguiente, finalizar).
+Sigue estos sencillos pasos para levantar la aplicación en tu entorno local.
 
-### Paso 2: Descargar el Código
+### Prerrequisitos
 
-Si no usas Git o la consola de comandos de GitHub:
+Debes tener instalado **Node.js** en tu equipo:
+1. Descarga la versión recomendada (LTS) desde [nodejs.org](https://nodejs.org/).
+2. Instálala en tu sistema operativo siguiendo el asistente predeterminado.
 
-1. Haz clic en el botón verde **"Code"** en la parte superior de esta página de GitHub.
-2. Selecciona la opción **"Download ZIP"** (Descargar archivo comprimido).
-3. Descomprime el archivo `.zip` en la carpeta de tu computadora donde desees guardar el proyecto (por ejemplo, en tus Documentos).
+### Instalación y Uso
 
-### Paso 3: Instalar Dependencias y Arrancar la Aplicación
+1. **Descarga el código fuente:**
+   * Haz clic en el botón verde **"Code"** en la parte superior derecha de esta página y selecciona **"Download ZIP"**.
+   * Extrae el contenido en el directorio de tu elección.
 
-1. Abre la terminal o consola de tu sistema operativo:
-   * **En Windows:** Presiona la tecla `Windows`, escribe `cmd` o `PowerShell` y presiona Enter.
-2. Navega hasta la carpeta del proyecto. Por ejemplo, si lo guardaste en tu carpeta de Documentos, escribe the following command en la terminal y presiona Enter:
-
-   ```bash
-   cd Documents/planificador_cursos
-   ```
-
-3. Instala los paquetes necesarios del programa escribiendo lo siguiente y presionando Enter:
-
+2. **Instala las dependencias necesarias:**
+   Abre una terminal o consola (Cmd/PowerShell en Windows, Terminal en macOS/Linux), navega a la carpeta del proyecto y ejecuta:
    ```bash
    npm install
    ```
 
-   *(Este paso descargará automáticamente los componentes visuales e internos de la aplicación y solo necesitas hacerlo la primera vez)*.
-
-4. Inicia la aplicación escribiendo este comando y presionando Enter:
-
+3. **Inicia el servidor de desarrollo:**
+   Ejecuta el siguiente comando para levantar la aplicación localmente:
    ```bash
    npm run dev
    ```
 
-5. En la consola verás un mensaje con un enlace similar a `http://localhost:5173`. Abre tu navegador web favorito (Chrome, Edge, Firefox, Safari) e ingresa a esa dirección para empezar a planificar.
+4. **Accede a la app:**
+   Abre tu navegador de preferencia e ingresa a `http://localhost:5173`.
+
+---
+
+## 💡 Flujo de Trabajo Recomendado
+
+1.  **Carga tus Datos:** Ingresa la lista de profesores y cursos desde las tablas en pantalla o usa una plantilla de Excel.
+2.  **Define la Disponibilidad:** Configura los días y bloques horarios disponibles de cada profesor desde el editor interactivo o mediante Excel.
+3.  **Establece Reglas:** Configura qué cursos no pueden coincidir a la misma hora (ej. materias del mismo nivel).
+4.  **Ajusta Preferencias:** Define prioridades blandas (ej. preferir bloques matutinos, evitar días específicos de docentes).
+5.  **Genera Propuestas:** Haz clic en **Generar Propuesta** para calcular múltiples alternativas viables.
+6.  **Fija y Bloquea:** Bloquea las asignaturas que ya estén en su horario definitivo y vuelve a generar para reacomodar el resto.
 
 ---
 
 ## 📊 Manual del Formato Excel de Importación
 
-Para facilitar la carga masiva de datos de profesores, cursos y disponibilidades, puedes usar el botón **"Descargar Plantilla"** en la interfaz para obtener un archivo Excel de ejemplo (`plantilla_ejemplo.xlsx`) pre-formateado.
+Para facilitar la carga masiva de datos, puedes descargar una plantilla estructurada usando el botón **"Descargar Plantilla"** de la aplicación. El archivo Excel resultante cuenta con las siguientes pestañas. Cada pestaña incluye una fila explicativa con datos de ejemplo (con el prefijo `Ej: `) que el sistema descarta automáticamente al importar:
 
-El archivo Excel consta de las siguientes pestañas, cada una con una fila explicativa de ejemplo (iniciada con `Ej:`) que el sistema omite automáticamente al importar:
+### Tabla Resumen de Hojas
 
-### 1. Profesores
-Define los docentes disponibles en tu periodo.
-* **`id`** *(Obligatorio)*: Identificador único sin espacios (ej: `t-1`, `profe-juan`).
-* **`nombre`** *(Obligatorio)*: Nombre completo del docente.
-* **`activo`** *(Obligatorio)*: Escribe `SÍ` o `NO` para indicar si debe considerarse en la planificación.
+| Pestaña | Descripción | Columnas Requeridas |
+| :--- | :--- | :--- |
+| **Profesores** | Registro de docentes del periodo | `id`, `nombre`, `activo` |
+| **Disponibilidad** | Ventanas horarias del docente (opcional) | `profesor_id`, `dia`, `clave_id` |
+| **Cursos** | Listado de asignaturas a planificar | `id`, `nombre`, `profesores`, `sesiones_semana`, `claves_por_sesion`, `activo` |
+| **Claves horarias** | Definición de los bloques horarios de clase | `id`, `clave`, `inicio`, `termino`, `activo` |
+| **Restricciones** | Incompatibilidades estrictas de cruce | `id`, `curso_a`, `curso_b`, `motivo`, `activo` |
+| **Preferencias** | Prioridades blandas para la distribución | `id`, `alcance`, `objetivo`, `tipo`, `valor`, `peso`, `activo` |
 
-### 2. Disponibilidad
-Configura las ventanas de tiempo en las que cada docente puede dictar clases. **Si un docente no se incluye en esta pestaña, el sistema asume que tiene disponibilidad completa.**
-* **`profesor_id`** *(Obligatorio)*: El ID del docente (debe coincidir exactamente con el de la hoja *Profesores*).
-* **`dia`** *(Obligatorio)*: Día de la semana en español (`Lunes`, `Martes`, `Miércoles`, `Jueves` o `Viernes`).
-* **`clave_id`** *(Obligatorio)*: Código de la clave horaria de ese día (debe coincidir con la hoja *Claves horarias*, ej: `1-2`).
+### Especificación de Columnas
 
-### 3. Cursos
-Registra las asignaturas del periodo.
-* **`id`** *(Obligatorio)*: Identificador único de la asignatura sin espacios (ej: `c-101`, `calc-1`).
-* **`nombre`** *(Obligatorio)*: Nombre legible de la asignatura (ej: *Matemáticas I*).
-* **`profesores`** *(Obligatorio)*: IDs de los profesores asignados separados por coma (ej: `t-1` o `t-1, t-2`).
-* **`sesiones_semana`** *(Obligatorio)*: Número de veces que se dicta la clase en la semana (ej: `2`).
-* **`claves_por_sesion`** *(Obligatorio)*: Duración de cada clase medida en bloques consecutivos (ej: `2` para clases dobles).
-* **`activo`** *(Obligatorio)*: Escribe `SÍ` o `NO`.
+#### 1. Profesores
+*   **`id`**: Identificador único sin espacios (ej: `t-1`).
+*   **`nombre`**: Nombre completo del docente.
+*   **`activo`**: `SÍ` o `NO`.
 
-### 4. Claves horarias
-Establece los bloques o módulos de tu jornada.
-* **`id`** *(Obligatorio)*: Código único del bloque sin espacios (ej: `1-2`).
-* **`clave`** *(Obligatorio)*: Nombre/Etiqueta visible del bloque en el horario (ej: `1-2`).
-* **`inicio`** *(Obligatorio)*: Hora de inicio en formato `HH:MM` (ej: `08:15`).
-* **`termino`** *(Obligatorio)*: Hora de término en formato `HH:MM` (ej: `09:25`).
-* **`activo`** *(Obligatorio)*: `SÍ` o `NO`.
+#### 2. Disponibilidad
+*Si un docente no se registra en esta pestaña, el planificador considerará que está 100% disponible.*
+*   **`profesor_id`**: ID del docente (debe coincidir con la hoja *Profesores*).
+*   **`dia`**: Nombre del día en español (ej: `Lunes`, `Martes`, `Miércoles`, `Jueves`, `Viernes`).
+*   **`clave_id`**: ID de la clave horaria de ese día (debe coincidir con la hoja *Claves horarias*, ej: `1-2`).
 
-### 5. Restricciones
-Evita que cursos específicos coincidan en el mismo bloque de horario (por ejemplo, ramos del mismo año).
-* **`id`** *(Obligatorio)*: Código único de la regla (ej: `cr-1`).
-* **`curso_a`** y **`curso_b`** *(Obligatorios)*: IDs de los dos cursos que no deben chocar.
-* **`motivo`**: Razón de la incompatibilidad.
-* **`activo`**: `SÍ` o `NO`.
+#### 3. Cursos
+*   **`id`**: ID único de la materia sin espacios (ej: `c-101`).
+*   **`nombre`**: Nombre legible de la materia.
+*   **`profesores`**: Lista de IDs de profesores asignados separados por coma (ej: `t-1` o `t-1, t-2`).
+*   **`sesiones_semana`**: Veces que se dicta la clase en la semana (ej: `2`).
+*   **`claves_por_sesion`**: Cuántos bloques consecutivos dura la sesión (ej: `2` para clases dobles).
+*   **`activo`**: `SÍ` o `NO`.
 
-### 6. Preferencias
-Indica prioridades blandas al algoritmo.
-* **`id`**: Código único de la preferencia.
-* **`alcance`**: Escribe `period` (general), `course` (un curso) o `teacher` (un profesor).
-* **`objetivo`**: ID del curso o profesor al que aplica (dejar vacío si el alcance es `period`).
-* **`tipo`**: Elige uno de:
-  - `preferMorning` (preferir las primeras horas del día)
-  - `preferDay` (preferir un día específico)
-  - `avoidDay` (evitar un día específico)
-  - `spreadSessions` (distribuir las sesiones en días separados)
-* **`valor`**: Si elegiste `preferDay` o `avoidDay`, escribe el día en inglés en minúscula (`monday`, `tuesday`, `wednesday`, `thursday`, `friday`).
-* **`peso`**: Prioridad numérica (ej: `5` para alta, `1` para baja).
-* **`activo`**: `SÍ` o `NO`.
+#### 4. Claves horarias
+*   **`id`**: Código identificador del bloque (ej: `1-2`).
+*   **`clave`**: Etiqueta visible en el horario (ej: `1-2`).
+*   **`inicio`** / **`termino`**: Horas en formato 24 horas (ej: `08:15` / `09:25`).
+*   **`activo`**: `SÍ` o `NO`.
+
+#### 5. Restricciones
+*   **`id`**: Código de la regla (ej: `cr-1`).
+*   **`curso_a`** / **`curso_b`**: IDs de las asignaturas que no deben coincidir en el mismo bloque.
+*   **`motivo`**: Razón del choque o incompatibilidad.
+*   **`activo`**: `SÍ` o `NO`.
+
+#### 6. Preferencias
+*   **`id`**: Identificador único.
+*   **`alcance`**: Rango de la preferencia (`period`, `course`, `teacher`).
+*   **`objetivo`**: ID del curso o del profesor afectado (dejar vacío si el alcance es `period`).
+*   **`tipo`**: Uno de los siguientes valores exactos:
+    *   `preferMorning`: Priorizar las primeras horas del día.
+    *   `preferDay`: Preferir un día de la semana.
+    *   `avoidDay`: Evitar un día de la semana.
+    *   `spreadSessions`: Distribuir las clases en días separados.
+*   **`valor`**: Si elegiste `preferDay` o `avoidDay`, escribe el día en inglés y minúscula (`monday`, `tuesday`, `wednesday`, `thursday`, `friday`).
+*   **`peso`**: Importancia o peso numérico de la preferencia (ej: `5`).
+*   **`activo`**: `SÍ` o `NO`.
 
 ---
 
-## 🛠️ Comandos de Desarrollo (Para uso técnico)
+## 🛠️ Comandos de Desarrollo
 
 Si deseas realizar modificaciones en el código o verificar la integridad del proyecto, puedes usar los siguientes comandos en la consola:
 
-* **Ejecutar Pruebas Unitarias:**
+*   **Ejecutar Pruebas Unitarias:**
+    ```bash
+    npm test
+    ```
+    *(Corre las 14 pruebas automatizadas de lógica de validación, scheduler, exportador de Excel e importador JSON)*.
 
-  ```bash
-  npm test
-  ```
+*   **Compilar para Producción:**
+    ```bash
+    npm run build
+    ```
+    *(Crea un paquete de archivos HTML, CSS y JS optimizado en la carpeta `/dist`)*.
 
-  *(Corre las 13 pruebas automatizadas de lógica de validación, scheduler, exportador de Excel e importador JSON)*.
+---
 
-* **Compilar para Producción:**
+## 📢 Declaración de Contexto (Vibecoded)
 
-  ```bash
-  npm run build
-  ```
+Este es un proyecto desarrollado bajo la modalidad **Vibecoded** (creado y modificado con asistencia directa de Inteligencia Artificial).
 
-  *(Crea un paquete de archivos HTML, CSS y JS optimizado en la carpeta `/dist`)*.
+*   **Sobre el autor:** Este programa es mantenido por **Luciano Cataldo** (no soy programador profesional ni pretendo parecerlo).
+*   **Propósito:** Desarrollar soluciones sencillas de forma ágil para uso local e interno de nuestro equipo de trabajo. Usamos GitHub simplemente como un repositorio para respaldar el código y colaborar internamente.
 
 ---
 
@@ -158,6 +174,6 @@ Si deseas realizar modificaciones en el código o verificar la integridad del pr
 
 Este proyecto está bajo la **Licencia MIT**. Puedes usarlo, modificarlo y distribuirlo libremente para fines comerciales y privados, siempre que mantengas los créditos correspondientes.
 
-* **Titular de la licencia:** Luciano Cataldo  
-* **Contacto:** <lcataldoalvarado@gmail.com>  
-* **GitHub:** [@luccat1](https://github.com/luccat1)
+*   **Titular de la licencia:** Luciano Cataldo  
+*   **Contacto:** <lcataldoalvarado@gmail.com>  
+*   **GitHub:** [@luccat1](https://github.com/luccat1)
