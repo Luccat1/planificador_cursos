@@ -59,24 +59,24 @@
 
 ## Traceability
 
-*(Actualizado durante creación del roadmap)*
+*(Actualizado: 2026-07-07 — roadmap creado)*
 
 | Requisito | Fase | Estado |
 |-----------|------|--------|
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
-| QUAL-04 | — | Pending |
-| QUAL-05 | — | Pending |
-| QUAL-06 | — | Pending |
-| FUNC-01 | — | Pending |
-| FUNC-02 | — | Pending |
-| FUNC-03 | — | Pending |
-| FUNC-04 | — | Pending |
-| FUNC-05 | — | Pending |
-| FUNC-06 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
+| QUAL-01 | Phase 1 — Day Constants | Pending |
+| QUAL-02 | Phase 2 — Excel Type Safety | Pending |
+| QUAL-03 | Phase 2 — Excel Type Safety | Pending |
+| QUAL-04 | Phase 3 — DataTables Decomposition | Pending |
+| QUAL-05 | Phase 4 — Notifications and Test Coverage | Pending |
+| QUAL-06 | Phase 4 — Notifications and Test Coverage | Pending |
+| FUNC-01 | Phase 5 — Autosave | Pending |
+| FUNC-02 | Phase 5 — Autosave | Pending |
+| FUNC-03 | Phase 6 — Web Worker Scheduler | Pending |
+| FUNC-04 | Phase 6 — Web Worker Scheduler | Pending |
+| FUNC-06 | Phase 6 — Web Worker Scheduler | Pending |
+| FUNC-05 | Phase 7 — ExcelJS Migration | Pending |
+| UI-01 | Phase 8 — UI Modernization | Pending |
+| UI-02 | Phase 8 — UI Modernization | Pending |
+| UI-03 | Phase 8 — UI Modernization | Pending |
+| UI-04 | Phase 8 — UI Modernization | Pending |
+| UI-05 | Phase 8 — UI Modernization | Pending |
