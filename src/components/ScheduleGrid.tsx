@@ -1,3 +1,4 @@
+import { Lock, Zap } from "lucide-react";
 import { Period, PlacedSession, Weekday, ScheduleProposal, Course } from "../domain/types";
 
 interface ScheduleGridProps {
@@ -229,14 +230,16 @@ export default function ScheduleGrid({
                       <div className="session-title" style={{ fontSize: "0.8rem", fontWeight: 600 }}>
                         {course?.name || session.courseId}
                       </div>
-                      <div className="session-teachers" style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
+                      <div className="session-teachers" style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
                         {session.teacherIds.map(tId => {
                           const t = period.teachers.find(teacher => teacher.id === tId);
                           return t ? t.name : tId;
                         }).join(", ")}
                       </div>
-                      <div className="session-status" style={{ alignSelf: "flex-end", marginTop: "auto", fontSize: "0.65rem" }}>
-                        {isLocked ? "🔒 Bloqueado" : "⚡ Propuesta"}
+                      <div className="session-status" style={{ alignSelf: "flex-end", marginTop: "auto" }}>
+                        {isLocked
+                          ? <><Lock size={10} aria-hidden="true" /> Bloqueado</>
+                          : <><Zap size={10} aria-hidden="true" /> Propuesta</>}
                       </div>
                     </div>
                   </div>

@@ -158,7 +158,7 @@ export function generateScheduleProposals(period: Period, maxAlternatives = 5): 
 
   const initialIssues = validatePlacedSessions(period, initialSessions);
   if (initialIssues.some(issue => issue.severity === "conflict" || issue.severity === "error")) {
-    return [{ id: "no-solution", label: "Sin solución (conflictos en bloqueos manuales)", sessions: initialSessions, score: -1000, issues: initialIssues }];
+    return [{ id: "no-solution", label: "Sin solución (conflictos en bloqueos manuales)", sessions: initialSessions, score: -Infinity, issues: initialIssues }];
   }
 
   const proposals: ScheduleProposal[] = [];

@@ -49,7 +49,7 @@
 ## Out of Scope
 
 | Feature | Razón |
-|---------|-------|
+| --- | --- |
 | Backend / base de datos | Sin infraestructura de servidor; LocalStorage es suficiente |
 | Autenticación / cuentas | App local/institucional sin necesidad de cuentas de usuario |
 | Exportación PDF | Fuera del alcance de este milestone |
@@ -59,10 +59,10 @@
 
 ## Traceability
 
-*(Actualizado: 2026-07-07 — roadmap creado)*
+Última actualización: 2026-07-07 — roadmap creado.
 
 | Requisito | Fase | Estado |
-|-----------|------|--------|
+| --- | --- | --- |
 | QUAL-01 | Phase 1 — Day Constants | Pending |
 | QUAL-02 | Phase 2 — Excel Type Safety | Pending |
 | QUAL-03 | Phase 2 — Excel Type Safety | Pending |

@@ -56,7 +56,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     e.preventDefault();
     if (!teacherName.trim()) return;
     const newTeacher: Teacher = {
-      id: `t-${Date.now()}`,
+      id: `t-${crypto.randomUUID()}`,
       name: teacherName.trim(),
       active: true
     };
@@ -86,7 +86,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     e.preventDefault();
     if (!courseName.trim()) return;
     const newCourse: Course = {
-      id: `c-${Date.now()}`,
+      id: `c-${crypto.randomUUID()}`,
       name: courseName.trim(),
       teacherIds: courseTeachers,
       weeklySessions: courseSessions,
@@ -135,9 +135,11 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   const handleDeleteBlock = (id: string) => {
     updatePeriod({
       timeBlocks: period.timeBlocks.filter(b => b.id !== id),
-      // Clean locks in requirements
+      // Clear BOTH lock fields together so no phantom lockedDay remains (fix #7)
       requirements: period.requirements.map(req =>
-        req.lockedBlockId === id ? { ...req, lockedBlockId: undefined } : req
+        req.lockedBlockId === id
+          ? { ...req, lockedDay: undefined, lockedBlockId: undefined }
+          : req
       )
     });
   };
@@ -153,7 +155,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     e.preventDefault();
     if (!ruleCourseA || !ruleCourseB || ruleCourseA === ruleCourseB) return;
     const newRule: CourseConflictRule = {
-      id: `cr-${Date.now()}`,
+      id: `cr-${crypto.randomUUID()}`,
       courseAId: ruleCourseA,
       courseBId: ruleCourseB,
       reason: ruleReason.trim() || "Cruce no permitido",
@@ -179,7 +181,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   const handleAddPref = (e: React.FormEvent) => {
     e.preventDefault();
     const newPref: Preference = {
-      id: `pref-${Date.now()}`,
+      id: `pref-${crypto.randomUUID()}`,
       scope: prefScope,
       targetId: prefScope === "period" ? "" : prefTarget,
       kind: prefKind,

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Lock, Unlock } from "lucide-react";
 import { Period, PlacedSession, Weekday, SessionRequirement } from "../domain/types";
 
 interface SidePanelProps {
@@ -130,11 +131,11 @@ export default function SidePanel({
           <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1rem", display: "flex", gap: "0.5rem" }}>
             {isCurrentlyLocked ? (
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleUnlockSession}>
-                🔓 Desbloquear Sesión
+                <Unlock size={14} aria-hidden="true" /> Desbloquear Sesión
               </button>
             ) : (
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleLockSession}>
-                🔒 Bloquear Sesión
+                <Lock size={14} aria-hidden="true" /> Bloquear Sesión
               </button>
             )}
           </div>
@@ -163,7 +164,7 @@ export default function SidePanel({
               </select>
             </div>
             <button type="submit" className="btn btn-primary" disabled={!selectedCourseId}>
-              Confirmar Ubicación 🔒
+              <Lock size={14} aria-hidden="true" /> Confirmar Ubicación
             </button>
           </form>
         </div>

@@ -1,4 +1,5 @@
 import { Period, PlacedSession, ScheduleIssue } from "./types";
+import { WEEKDAY_LABELS } from "./constants";
 
 export function validatePeriod(period: Period): ScheduleIssue[] {
   const issues: ScheduleIssue[] = [];
@@ -96,6 +97,9 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
   // Maps to track: (day + "_" + blockId) => Set of active courses in that slot
   const slotCourses = new Map<string, Set<string>>();
 
+  // Deduplicate TEACHER_UNAVAILABLE per (teacherId, requirementId) — fix #8
+  const teacherUnavailableReported = new Set<string>();
+
   for (const session of sessions) {
     // INVALID_BLOCK: session references missing or inactive block.
     if (!activeBlocksSet.has(session.blockId)) {
@@ -145,17 +149,21 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
           teacherBookings.get(key)!.push(session);
         }
 
-        // TEACHER_UNAVAILABLE: check teacher availability
-        const teacher = period.teachers.find(t => t.id === teacherId);
-        if (teacher && teacher.availability) {
-          const availableBlocks = teacher.availability[session.day] || [];
-          if (!availableBlocks.includes(bId)) {
-            issues.push({
-              severity: "conflict",
-              code: "TEACHER_UNAVAILABLE",
-              message: `El profesor '${teacher.name}' no está disponible el ${translateDay(session.day)} en el bloque '${bId}'.`,
-              entityIds: [session.requirementId, teacherId, bId]
-            });
+        // TEACHER_UNAVAILABLE — one issue per (teacher, session), not per block (fix #8)
+        const unavailKey = `${teacherId}_${session.requirementId}`;
+        if (!teacherUnavailableReported.has(unavailKey)) {
+          const teacher = period.teachers.find(t => t.id === teacherId);
+          if (teacher && teacher.availability) {
+            const availableBlocks = teacher.availability[session.day] || [];
+            if (!availableBlocks.includes(bId)) {
+              teacherUnavailableReported.add(unavailKey);
+              issues.push({
+                severity: "conflict",
+                code: "TEACHER_UNAVAILABLE",
+                message: `El profesor '${teacher.name}' no está disponible el ${WEEKDAY_LABELS[session.day] ?? session.day} en el bloque '${session.blockId}'.`,
+                entityIds: [session.requirementId, teacherId, session.blockId]
+              });
+            }
           }
         }
       }
@@ -187,7 +195,7 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
       issues.push({
         severity: "conflict",
         code: "TEACHER_DOUBLE_BOOKED",
-        message: `El profesor '${teacherName}' está duplicado el ${translateDay(day)} en el bloque '${blockId}' para los cursos: ${courseNames}.`,
+        message: `El profesor '${teacherName}' está duplicado el ${WEEKDAY_LABELS[day as keyof typeof WEEKDAY_LABELS] ?? day} en el bloque '${blockId}' para los cursos: ${courseNames}.`,
         entityIds: bookedSessions.map(s => s.requirementId).concat(teacherId)
       });
     }
@@ -210,7 +218,7 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
           const k = course ? course.blocksPerSession : 1;
           const sIdx = activeBlockIds.indexOf(s.blockId);
           if (sIdx === -1) return false;
-          
+
           const bIdx = activeBlockIds.indexOf(blockId);
           return s.day === day && bIdx >= sIdx && bIdx < sIdx + k && (s.courseId === rule.courseAId || s.courseId === rule.courseBId);
         });
@@ -218,7 +226,7 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
         issues.push({
           severity: "conflict",
           code: "COURSE_CONFLICT",
-          message: `Conflicto entre '${courseAName}' y '${courseBName}' el ${translateDay(day)} en el bloque '${blockId}': ${rule.reason}.`,
+          message: `Conflicto entre '${courseAName}' y '${courseBName}' el ${WEEKDAY_LABELS[day as keyof typeof WEEKDAY_LABELS] ?? day} en el bloque '${blockId}': ${rule.reason}.`,
           entityIds: [rule.id, rule.courseAId, rule.courseBId].concat(relevantSessions.map(s => s.requirementId))
         });
       }
@@ -226,15 +234,4 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
   }
 
   return issues;
-}
-
-function translateDay(day: string): string {
-  const translations: Record<string, string> = {
-    monday: "Lunes",
-    tuesday: "Martes",
-    wednesday: "Miércoles",
-    thursday: "Jueves",
-    friday: "Viernes"
-  };
-  return translations[day] || day;
 }

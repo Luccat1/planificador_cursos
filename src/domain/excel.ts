@@ -1,16 +1,6 @@
 import * as XLSX from "xlsx";
 import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, Weekday } from "./types";
-
-function translateDayToSpanish(day: string): string {
-  const translations: Record<string, string> = {
-    monday: "Lunes",
-    tuesday: "Martes",
-    wednesday: "Miércoles",
-    thursday: "Jueves",
-    friday: "Viernes"
-  };
-  return translations[day] || day;
-}
+import { WEEKDAY_LABELS, SPANISH_TO_WEEKDAY, VALID_PREFERENCE_SCOPES, VALID_PREFERENCE_KINDS } from "./constants";
 
 function isDescriptionRow(row: any): boolean {
   if (!row) return false;
@@ -174,7 +164,7 @@ export function buildExcelTemplate(period: Period): ArrayBuffer {
         for (const blockId of blocks) {
           availabilityRows.push({
             profesor_id: t.id,
-            dia: translateDayToSpanish(day),
+            dia: WEEKDAY_LABELS[day] ?? day,
             clave_id: blockId
           });
         }
@@ -206,14 +196,7 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
   const preferences: Preference[] = [];
 
   // Parse Disponibilidad first
-  const spanishToEnglishDay: Record<string, Weekday> = {
-    "lunes": "monday",
-    "martes": "tuesday",
-    "miércoles": "wednesday",
-    "miercoles": "wednesday",
-    "jueves": "thursday",
-    "viernes": "friday"
-  };
+  const spanishToEnglishDay = SPANISH_TO_WEEKDAY;
 
   const teacherAvailabilities = new Map<string, { [day in Weekday]?: string[] }>();
   if (wb.SheetNames.includes("Disponibilidad")) {
@@ -324,11 +307,16 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
 
     for (const row of data) {
       if (row.id && row.alcance && row.tipo) {
+        const scope = String(row.alcance).trim();
+        const kind = String(row.tipo).trim();
+        // Validate against known enum values — skip invalid rows (fix #6)
+        if (!(VALID_PREFERENCE_SCOPES as ReadonlyArray<string>).includes(scope)) continue;
+        if (!(VALID_PREFERENCE_KINDS as ReadonlyArray<string>).includes(kind)) continue;
         preferences.push({
           id: String(row.id).trim(),
-          scope: String(row.alcance).trim() as any,
+          scope: scope as Preference["scope"],
           targetId: String(row.objetivo || "").trim(),
-          kind: String(row.tipo).trim() as any,
+          kind: kind as Preference["kind"],
           value: String(row.valor || "").trim(),
           weight: parseFloat(row.peso) || 1,
           active: parseBoolean(row.activo)

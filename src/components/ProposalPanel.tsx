@@ -1,3 +1,4 @@
+import { XCircle, AlertTriangle, Lightbulb, CheckCircle } from "lucide-react";
 import { ScheduleProposal } from "../domain/types";
 
 interface ProposalPanelProps {
@@ -14,7 +15,7 @@ export default function ProposalPanel({
   if (proposals.length === 0) {
     return (
       <div className="panel">
-        <h3 style={{ fontFamily: "var(--font-title)", marginBottom: "1rem" }}>Propuestas de Horario</h3>
+        <h3 style={{ fontFamily: "var(--font-title)", marginBottom: "0.75rem", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
         <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
           Presiona "Generar propuesta" para buscar horarios viables y optimizar según tus preferencias.
         </p>
@@ -24,7 +25,7 @@ export default function ProposalPanel({
 
   return (
     <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <h3 style={{ fontFamily: "var(--font-title)" }}>Propuestas de Horario</h3>
+      <h3 style={{ fontFamily: "var(--font-title)", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {proposals.map(proposal => {
@@ -57,12 +58,12 @@ export default function ProposalPanel({
                 </span>
               </div>
 
-              <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                {errors.length > 0 && <span style={{ color: "#f87171" }}>❌ {errors.length} Conflictos</span>}
-                {warnings.length > 0 && <span style={{ color: "#fcd34d" }}>⚠️ {warnings.length} Advertencias</span>}
-                {suggestions.length > 0 && <span style={{ color: "#67e8f9" }}>💡 {suggestions.length} Sugerencias</span>}
+              <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                {errors.length > 0 && <span style={{ color: "#f87171", display: "flex", alignItems: "center", gap: "0.25rem" }}><XCircle size={12} aria-hidden="true" /> {errors.length} Conflictos</span>}
+                {warnings.length > 0 && <span style={{ color: "#fcd34d", display: "flex", alignItems: "center", gap: "0.25rem" }}><AlertTriangle size={12} aria-hidden="true" /> {warnings.length} Advertencias</span>}
+                {suggestions.length > 0 && <span style={{ color: "#67e8f9", display: "flex", alignItems: "center", gap: "0.25rem" }}><Lightbulb size={12} aria-hidden="true" /> {suggestions.length} Sugerencias</span>}
                 {errors.length === 0 && warnings.length === 0 && suggestions.length === 0 && (
-                  <span style={{ color: "var(--success-color)" }}>✓ Horario Perfecto</span>
+                  <span style={{ color: "var(--success-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}><CheckCircle size={12} aria-hidden="true" /> Horario Perfecto</span>
                 )}
               </div>
             </div>
@@ -81,7 +82,13 @@ export default function ProposalPanel({
             ) : (
               selectedProposal.issues.map((issue, idx) => (
                 <div key={idx} className={`issue-item issue-${issue.severity}`}>
-                  <span>{issue.severity === "error" || issue.severity === "conflict" ? "❌" : issue.severity === "warning" ? "⚠️" : "💡"}</span>
+                  <span aria-hidden="true">
+                    {issue.severity === "error" || issue.severity === "conflict"
+                      ? <XCircle size={14} />
+                      : issue.severity === "warning"
+                      ? <AlertTriangle size={14} />
+                      : <Lightbulb size={14} />}
+                  </span>
                   <div>{issue.message}</div>
                 </div>
               ))
