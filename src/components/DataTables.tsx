@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, PreferenceScope, PreferenceKind, Weekday } from "../domain/types";
+import { useState, type FormEvent } from "react";
+import { Period, Teacher, Course, TimeBlock, CourseConflictRule, Preference, PreferenceScope, PreferenceKind, Weekday, StudentGroup } from "../domain/types";
 
 interface DataTablesProps {
   period: Period;
   onChangePeriod: (period: Period) => void;
 }
 
-type TabType = "teachers" | "courses" | "blocks" | "rules" | "preferences";
+type TabType = "teachers" | "courses" | "blocks" | "rules" | "groups" | "preferences";
 
 export default function DataTables({ period, onChangePeriod }: DataTablesProps) {
   const [activeTab, setActiveTab] = useState<TabType>("teachers");
@@ -47,6 +47,10 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
+  const [editingGroup, setEditingGroup] = useState<StudentGroup | null>(null);
+  // New group form
+  const [groupName, setGroupName] = useState("");
+  const [groupCourseIds, setGroupCourseIds] = useState<string[]>([]);
   // Natural language preference input
   const [nlPrefText, setNlPrefText] = useState("");
 
@@ -59,7 +63,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   };
 
   // Add/Delete Teachers
-  const handleAddTeacher = (e: React.FormEvent) => {
+  const handleAddTeacher = (e: FormEvent) => {
     e.preventDefault();
     if (!teacherName.trim()) return;
     const newTeacher: Teacher = {
@@ -89,7 +93,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   };
 
   // Add/Delete Courses
-  const handleAddCourse = (e: React.FormEvent) => {
+  const handleAddCourse = (e: FormEvent) => {
     e.preventDefault();
     if (!courseName.trim()) return;
     const newCourse: Course = {
@@ -123,7 +127,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   };
 
   // Add/Delete Time Blocks
-  const handleAddBlock = (e: React.FormEvent) => {
+  const handleAddBlock = (e: FormEvent) => {
     e.preventDefault();
     if (!blockLabel.trim() || !blockStart || !blockEnd) return;
     const newBlock: TimeBlock = {
@@ -158,7 +162,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   };
 
   // Add/Delete Conflict Rules
-  const handleAddRule = (e: React.FormEvent) => {
+  const handleAddRule = (e: FormEvent) => {
     e.preventDefault();
     if (!ruleCourseA || !ruleCourseB || ruleCourseA === ruleCourseB) return;
     const newRule: CourseConflictRule = {
@@ -185,7 +189,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   };
 
   // Add/Delete Preferences
-  const handleAddPref = (e: React.FormEvent) => {
+  const handleAddPref = (e: FormEvent) => {
     e.preventDefault();
     const newPref: Preference = {
       id: `pref-${crypto.randomUUID()}`,
@@ -228,6 +232,29 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     if (!editingBlock?.label.trim() || !editingBlock.start || !editingBlock.end) return;
     updatePeriod({ timeBlocks: period.timeBlocks.map(b => b.id === editingBlock.id ? { ...editingBlock, label: editingBlock.label.trim() } : b) });
     setEditingBlock(null);
+  };
+
+  const handleAddGroup = (e: FormEvent) => {
+    e.preventDefault();
+    if (!groupName.trim() || groupCourseIds.length < 2) return;
+    const newGroup: StudentGroup = { id: `sg-${crypto.randomUUID()}`, name: groupName.trim(), courseIds: groupCourseIds, active: true };
+    updatePeriod({ studentGroups: [...(period.studentGroups || []), newGroup] });
+    setGroupName("");
+    setGroupCourseIds([]);
+  };
+
+  const handleDeleteGroup = (id: string) => {
+    updatePeriod({ studentGroups: (period.studentGroups || []).filter(g => g.id !== id) });
+  };
+
+  const toggleGroupActive = (id: string) => {
+    updatePeriod({ studentGroups: (period.studentGroups || []).map(g => g.id === id ? { ...g, active: !g.active } : g) });
+  };
+
+  const handleSaveGroup = () => {
+    if (!editingGroup?.name.trim() || editingGroup.courseIds.length < 2) return;
+    updatePeriod({ studentGroups: (period.studentGroups || []).map(g => g.id === editingGroup.id ? { ...editingGroup, name: editingGroup.name.trim() } : g) });
+    setEditingGroup(null);
   };
 
   const parseNaturalPreferences = (text: string): Preference[] => {
@@ -284,6 +311,9 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
         </button>
         <button className={`tab-btn ${activeTab === "rules" ? "active" : ""}`} onClick={() => setActiveTab("rules")}>
           Restricciones ({period.conflictRules.length})
+        </button>
+        <button className={`tab-btn ${activeTab === "groups" ? "active" : ""}`} onClick={() => setActiveTab("groups")}>
+          Grupos ({(period.studentGroups || []).length})
         </button>
         <button className={`tab-btn ${activeTab === "preferences" ? "active" : ""}`} onClick={() => setActiveTab("preferences")}>
           Preferencias ({period.preferences.length})
@@ -829,6 +859,110 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
                     <tr>
                       <td colSpan={5} style={{ textAlign: "center", color: "var(--text-secondary)" }}>
                         No hay restricciones registradas.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "groups" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", margin: 0 }}>
+              Un <strong>Grupo</strong> representa un conjunto de alumnos que cursan varios ramos juntos (ej. "Nivel Inicial"). El planificador asegura que ningún par de cursos del grupo se superponga en horario.
+            </p>
+            <form onSubmit={handleAddGroup} style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: "1rem", alignItems: "flex-end" }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Nombre del Grupo</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Ej. Nivel Inicial"
+                  value={groupName}
+                  onChange={e => setGroupName(e.target.value)}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Cursos que comparten este grupo (selecciona 2 o más)</label>
+                <select
+                  multiple
+                  className="form-control"
+                  style={{ height: "72px", padding: "4px" }}
+                  value={groupCourseIds}
+                  onChange={e => setGroupCourseIds(Array.from(e.target.selectedOptions).map(o => o.value))}
+                >
+                  {period.courses.filter(c => c.active).map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={groupCourseIds.length < 2}>Agregar</button>
+            </form>
+
+            <div className="data-table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Estado</th>
+                    <th>Nombre del Grupo</th>
+                    <th>Cursos</th>
+                    <th style={{ textAlign: "right" }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(period.studentGroups || []).map(g => (
+                    <tr key={g.id}>
+                      {editingGroup !== null && editingGroup.id === g.id ? (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={editingGroup.active} onChange={() => setEditingGroup({ ...editingGroup, active: !editingGroup.active })} />
+                              <div className="checkbox-box"></div>
+                              <span>{editingGroup.active ? "Activo" : "Inactivo"}</span>
+                            </label>
+                          </td>
+                          <td><input className="form-control" value={editingGroup.name} onChange={e => setEditingGroup({ ...editingGroup, name: e.target.value })} /></td>
+                          <td>
+                            <select multiple className="form-control" style={{ height: "72px", padding: "4px" }}
+                              value={editingGroup.courseIds}
+                              onChange={e => setEditingGroup({ ...editingGroup, courseIds: Array.from(e.target.selectedOptions).map(o => o.value) })}>
+                              {period.courses.filter(c => c.active).map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-primary btn-sm" style={{ marginRight: "0.5rem" }} onClick={handleSaveGroup}>Guardar</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setEditingGroup(null)}>Cancelar</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={g.active} onChange={() => toggleGroupActive(g.id)} />
+                              <div className="checkbox-box"></div>
+                              <span>{g.active ? "Activo" : "Inactivo"}</span>
+                            </label>
+                          </td>
+                          <td style={{ fontWeight: 600 }}>{g.name}</td>
+                          <td style={{ fontSize: "0.875rem" }}>
+                            {g.courseIds.map(id => period.courses.find(c => c.id === id)?.name || id).join(" · ")}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }} onClick={() => setEditingGroup({ ...g })}>Editar</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteGroup(g.id)}>Eliminar</button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                  {(period.studentGroups || []).length === 0 && (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: "center", color: "var(--text-secondary)" }}>
+                        No hay grupos definidos. Agrega uno para evitar solapamientos entre cursos del mismo nivel.
                       </td>
                     </tr>
                   )}

@@ -26,7 +26,8 @@ export const samplePeriod: Period = {
     { id: "cr1", courseAId: "c1", courseBId: "c3", reason: "Cruce no permitido", active: true },
     { id: "cr2", courseAId: "c2", courseBId: "c3", reason: "Cruce no permitido", active: true }
   ],
-  preferences: []
+  preferences: [],
+  studentGroups: []
 };
 
 // Fixture: Course without teacher

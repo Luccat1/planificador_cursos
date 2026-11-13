@@ -20,6 +20,7 @@ export function createDefaultPeriod(name: string): Period {
     requirements: [],
     conflictRules: [],
     preferences: [],
+    studentGroups: [],
   };
 }
 
@@ -84,6 +85,14 @@ export function createDemoPeriod(): Period {
         kind: "preferMorning",
         value: "",
         weight: 5,
+        active: true
+      }
+    ],
+    studentGroups: [
+      {
+        id: "sg-1",
+        name: "Semestre 1",
+        courseIds: ["c-1", "c-2"],
         active: true
       }
     ]

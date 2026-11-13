@@ -69,15 +69,22 @@ export function parsePeriodJson(jsonStr: string): Period {
     throw new Error("La lista de claves horarias contiene elementos inválidos o nulos.");
   }
 
+  // Backward compat: older exports don't have studentGroups
+  if (!Array.isArray(parsed.studentGroups)) {
+    parsed.studentGroups = [];
+  }
+
   return parsed as Period;
 }
 
-/** Persist period to localStorage (versioned key avoids stale schema reads). */
-export function savePeriodToStorage(period: Period): void {
+/** Persist period to localStorage (versioned key avoids stale schema reads).
+ *  Returns false if the write failed (quota exceeded, private browsing, etc.). */
+export function savePeriodToStorage(period: Period): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, serializePeriod(period));
+    return true;
   } catch {
-    // Storage quota exceeded or private-browsing restriction — fail silently.
+    return false;
   }
 }
 

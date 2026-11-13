@@ -43,6 +43,13 @@ export interface PlacedSession {
   state: SessionState;
 }
 
+export interface StudentGroup {
+  id: string;
+  name: string;
+  courseIds: string[];
+  active: boolean;
+}
+
 export interface CourseConflictRule {
   id: string;
   courseAId: string;
@@ -72,6 +79,7 @@ export interface Period {
   requirements: SessionRequirement[];
   conflictRules: CourseConflictRule[];
   preferences: Preference[];
+  studentGroups: StudentGroup[];
 }
 
 export interface ScheduleIssue {

@@ -35,7 +35,9 @@ export default function App() {
 
   // Persist to localStorage whenever period changes (fix #1)
   useEffect(() => {
-    savePeriodToStorage(period);
+    if (!savePeriodToStorage(period)) {
+      console.warn("No se pudo guardar en localStorage (cuota excedida o modo privado).");
+    }
   }, [period]);
 
   // JSON backup actions
@@ -152,7 +154,7 @@ export default function App() {
 
         setPeriod({
           ...parsed,
-          name: `Importado de Excel (${period.name})`,
+          name: period.name,
           id: period.id,
         });
         setProposals([]);

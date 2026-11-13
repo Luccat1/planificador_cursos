@@ -333,7 +333,8 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
     courses,
     requirements: [],
     conflictRules,
-    preferences
+    preferences,
+    studentGroups: []
   };
 }
 

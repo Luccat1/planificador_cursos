@@ -213,9 +213,13 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
   }
 
   // COURSE_CONFLICT: active rule has both courses in same day and block.
+  const courseConflictReported = new Set<string>();
   for (const rule of activeRules) {
     for (const slot of slotCourses.values()) {
       if (slot.courses.has(rule.courseAId) && slot.courses.has(rule.courseBId)) {
+        const conflictKey = `${rule.id}_${slot.day}`;
+        if (courseConflictReported.has(conflictKey)) continue;
+        courseConflictReported.add(conflictKey);
         const { day, blockId } = slot;
         const courseAName = coursesMap.get(rule.courseAId)?.name || rule.courseAId;
         const courseBName = coursesMap.get(rule.courseBId)?.name || rule.courseBId;
@@ -238,6 +242,38 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
           entityIds: [rule.id, rule.courseAId, rule.courseBId].concat(relevantSessions.map(s => s.requirementId))
         });
       }
+    }
+  }
+
+  // GROUP_CONFLICT: two or more courses from the same student group share a slot.
+  const activeGroups = (period.studentGroups || []).filter(g => g.active);
+  const groupConflictReported = new Set<string>();
+  for (const group of activeGroups) {
+    for (const slot of slotCourses.values()) {
+      const coursesInSlot = group.courseIds.filter(id => slot.courses.has(id));
+      if (coursesInSlot.length < 2) continue;
+      const { day, blockId } = slot;
+      // Dedup: one issue per (group, day, sorted pair) — multi-block sessions would fire per block otherwise
+      const pairKey = `${group.id}_${day}_${[...coursesInSlot].sort().join(",")}`;
+      if (groupConflictReported.has(pairKey)) continue;
+      groupConflictReported.add(pairKey);
+
+      const courseNames = coursesInSlot.map(id => coursesMap.get(id)?.name || id).join(", ");
+      const relevantSessions = sessions.filter(s => {
+        const course = coursesMap.get(s.courseId);
+        const k = course ? course.blocksPerSession : 1;
+        const sIdx = activeBlockIds.indexOf(s.blockId);
+        if (sIdx === -1) return false;
+        const bIdx = activeBlockIds.indexOf(blockId);
+        return s.day === day && bIdx >= sIdx && bIdx < sIdx + k && coursesInSlot.includes(s.courseId);
+      });
+
+      issues.push({
+        severity: "conflict",
+        code: "GROUP_CONFLICT",
+        message: `Conflicto en grupo '${group.name}': ${courseNames} se superponen el ${WEEKDAY_LABELS[day] ?? day} en bloque '${blockId}' (comparten estudiantes).`,
+        entityIds: [group.id, ...coursesInSlot, ...relevantSessions.map(s => s.requirementId)]
+      });
     }
   }
 

@@ -153,4 +153,20 @@ describe("Validation", () => {
     const periodIssues = validatePeriod(samplePeriod);
     expect(periodIssues.filter(i => i.severity === "error")).toHaveLength(0);
   });
+
+  it("reports exactly one COURSE_CONFLICT for multi-block sessions on the same day", () => {
+    const period = {
+      ...samplePeriod,
+      courses: samplePeriod.courses.map(c =>
+        c.id === "c1" || c.id === "c3" ? { ...c, blocksPerSession: 2 } : c
+      )
+    };
+    // c1 and c3 have a conflict rule (cr1); both start at the same block → each occupies 2 blocks
+    const sessions = [
+      { requirementId: "r1", courseId: "c1", day: "monday" as const, blockId: "1-2", teacherIds: ["t1"], state: "draft" as const },
+      { requirementId: "r5", courseId: "c3", day: "monday" as const, blockId: "1-2", teacherIds: ["t3"], state: "draft" as const }
+    ];
+    const issues = validatePlacedSessions(period, sessions);
+    expect(issues.filter(i => i.code === "COURSE_CONFLICT")).toHaveLength(1);
+  });
 });

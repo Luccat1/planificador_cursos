@@ -25,6 +25,7 @@ const twoSessionPeriod: Period = {
   requirements: [],
   conflictRules: [],
   preferences: [],
+  studentGroups: [],
 };
 
 const morningSession: PlacedSession = {
@@ -251,6 +252,7 @@ describe("Scheduler", () => {
       ],
       conflictRules: [],
       preferences: [],
+      studentGroups: [],
     };
     const proposals = generateScheduleProposals(conflictedPeriod, 1);
     expect(proposals[0].score).toBe(-Infinity);
