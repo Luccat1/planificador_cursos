@@ -7,6 +7,8 @@
 
 Una aplicación web interactiva y local para la **planificación inteligente de horarios académicos**. Optimiza la distribución de bloques horarios resolviendo conflictos de disponibilidad docente, colisiones de asignaturas y preferencias pedagógicas a través de un algoritmo avanzado de backtracking.
 
+🌐 **Demo en vivo:** [https://luccat1.github.io/planificador_cursos/](https://luccat1.github.io/planificador_cursos/)
+
 ---
 
 ## 📋 Tabla de Contenidos
