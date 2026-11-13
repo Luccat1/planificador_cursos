@@ -157,7 +157,7 @@ export default function ScheduleGrid({
               fontWeight: 600,
               color: "var(--text-secondary)",
               fontSize: "0.875rem",
-              backgroundColor: "rgba(15, 23, 42, 0.4)"
+              backgroundColor: "var(--bg-secondary)"
             }}>
               {WEEKDAY_LABELS[day]}
             </div>

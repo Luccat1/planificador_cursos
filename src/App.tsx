@@ -14,7 +14,7 @@ import ScheduleGrid from "./components/ScheduleGrid";
 import SidePanel from "./components/SidePanel";
 import DataTables from "./components/DataTables";
 import ProposalPanel from "./components/ProposalPanel";
-import { Download, Upload, Calendar } from "lucide-react";
+import { Download, Upload, Calendar, Lock } from "lucide-react";
 import "./styles.css";
 
 export default function App() {
@@ -252,15 +252,16 @@ export default function App() {
 
         <div className="header-actions">
           <div className="action-group">
-            <button className="btn btn-ghost btn-sm" onClick={handleExportJson} title="Exportar JSON">
-              <Download size={13} /> JSON
+            <button className="btn btn-ghost btn-sm" onClick={handleExportJson} title="Guardar una copia de respaldo en formato JSON">
+              <Download size={13} /> Respaldar
             </button>
-            <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }} title="Importar JSON">
-              <Upload size={13} /> JSON
+            <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }} title="Restaurar desde una copia de respaldo JSON">
+              <Upload size={13} /> Restaurar
               <input
                 ref={jsonInputRef}
                 type="file"
                 accept=".json"
+                aria-label="Seleccionar archivo de respaldo JSON"
                 onChange={handleImportJson}
                 style={{ display: "none" }}
               />
@@ -270,18 +271,19 @@ export default function App() {
           <div className="action-divider" role="separator" />
 
           <div className="action-group">
-            <button className="btn btn-ghost btn-sm" onClick={handleDownloadDemoExcel} title="Descargar plantilla Excel de ejemplo">
-              <Download size={13} /> Plantilla
+            <button className="btn btn-ghost btn-sm" onClick={handleDownloadDemoExcel} title="Bajar una planilla Excel de ejemplo con datos de prueba">
+              <Download size={13} /> Ejemplo
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={handleExportExcel} title="Exportar Excel">
-              <Download size={13} /> Excel
+            <button className="btn btn-ghost btn-sm" onClick={handleExportExcel} title="Exportar el periodo actual como planilla Excel">
+              <Download size={13} /> Exportar
             </button>
-            <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }} title="Importar Excel">
-              <Upload size={13} /> Excel
+            <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }} title="Importar datos desde una planilla Excel">
+              <Upload size={13} /> Importar
               <input
                 ref={excelInputRef}
                 type="file"
                 accept=".xlsx,.xls"
+                aria-label="Seleccionar planilla Excel para importar"
                 onChange={handleImportExcel}
                 style={{ display: "none" }}
               />
@@ -348,7 +350,7 @@ export default function App() {
                   Presiona <strong>Generar propuesta</strong> para calcular el mejor horario.
                 </li>
                 <li>
-                  Haz clic en una sesión del horario para <strong>bloquearla (🔒)</strong>; no
+                  Haz clic en una sesión del horario para <strong>bloquearla (<Lock size={12} aria-hidden="true" style={{ display: "inline", verticalAlign: "middle" }} />)</strong>; no
                   cambiará en próximas generaciones.
                 </li>
                 <li>

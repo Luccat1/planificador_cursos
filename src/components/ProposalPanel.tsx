@@ -41,7 +41,7 @@ export default function ProposalPanel({
               style={{
                 padding: "0.75rem 1rem",
                 borderRadius: "var(--radius-md)",
-                backgroundColor: isSelected ? "var(--bg-tertiary)" : "rgba(255, 255, 255, 0.02)",
+                backgroundColor: isSelected ? "var(--accent-soft)" : "var(--bg-card)",
                 border: isSelected ? "1px solid var(--accent-color)" : "1px solid var(--border-color)",
                 cursor: "pointer",
                 transition: "all var(--transition-fast)"
@@ -59,9 +59,9 @@ export default function ProposalPanel({
               </div>
 
               <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                {errors.length > 0 && <span style={{ color: "#f87171", display: "flex", alignItems: "center", gap: "0.25rem" }}><XCircle size={12} aria-hidden="true" /> {errors.length} Conflictos</span>}
-                {warnings.length > 0 && <span style={{ color: "#fcd34d", display: "flex", alignItems: "center", gap: "0.25rem" }}><AlertTriangle size={12} aria-hidden="true" /> {warnings.length} Advertencias</span>}
-                {suggestions.length > 0 && <span style={{ color: "#67e8f9", display: "flex", alignItems: "center", gap: "0.25rem" }}><Lightbulb size={12} aria-hidden="true" /> {suggestions.length} Sugerencias</span>}
+                {errors.length > 0 && <span style={{ color: "var(--error-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}><XCircle size={12} aria-hidden="true" /> {errors.length} Conflictos</span>}
+                {warnings.length > 0 && <span style={{ color: "var(--warning-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}><AlertTriangle size={12} aria-hidden="true" /> {warnings.length} Advertencias</span>}
+                {suggestions.length > 0 && <span style={{ color: "var(--info-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}><Lightbulb size={12} aria-hidden="true" /> {suggestions.length} Sugerencias</span>}
                 {errors.length === 0 && warnings.length === 0 && suggestions.length === 0 && (
                   <span style={{ color: "var(--success-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}><CheckCircle size={12} aria-hidden="true" /> Horario Perfecto</span>
                 )}
