@@ -1,4 +1,4 @@
-import { Period, PlacedSession, ScheduleIssue } from "./types";
+import { Period, PlacedSession, ScheduleIssue, Weekday } from "./types";
 import { WEEKDAY_LABELS } from "./constants";
 
 export function validatePeriod(period: Period): ScheduleIssue[] {
@@ -91,11 +91,22 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
   const coursesMap = new Map(period.courses.map(c => [c.id, c]));
   const activeRules = period.conflictRules.filter(r => r.active);
 
-  // Maps to track: (teacherId + "_" + day + "_" + blockId) => [sessions]
-  const teacherBookings = new Map<string, PlacedSession[]>();
+  // Maps to track teacher bookings per (teacherId, day, blockId)
+  interface TeacherBookingEntry {
+    teacherId: string;
+    day: Weekday;
+    blockId: string;
+    sessions: PlacedSession[];
+  }
+  const teacherBookings = new Map<string, TeacherBookingEntry>();
 
-  // Maps to track: (day + "_" + blockId) => Set of active courses in that slot
-  const slotCourses = new Map<string, Set<string>>();
+  // Maps to track active courses per (day, blockId)
+  interface SlotCoursesEntry {
+    day: Weekday;
+    blockId: string;
+    courses: Set<string>;
+  }
+  const slotCourses = new Map<string, SlotCoursesEntry>();
 
   // Deduplicate TEACHER_UNAVAILABLE per (teacherId, requirementId) — fix #8
   const teacherUnavailableReported = new Set<string>();
@@ -142,11 +153,13 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
       // TEACHER_DOUBLE_BOOKED: same teacher in same day and occupied block
       for (const teacherId of teachers) {
         const key = `${teacherId}_${session.day}_${bId}`;
-        if (!teacherBookings.has(key)) {
-          teacherBookings.set(key, []);
+        let booking = teacherBookings.get(key);
+        if (!booking) {
+          booking = { teacherId, day: session.day, blockId: bId, sessions: [] };
+          teacherBookings.set(key, booking);
         }
-        if (!teacherBookings.get(key)!.some(s => s.requirementId === session.requirementId)) {
-          teacherBookings.get(key)!.push(session);
+        if (!booking.sessions.some(s => s.requirementId === session.requirementId)) {
+          booking.sessions.push(session);
         }
 
         // TEACHER_UNAVAILABLE — one issue per (teacher, session), not per block (fix #8)
@@ -160,8 +173,8 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
               issues.push({
                 severity: "conflict",
                 code: "TEACHER_UNAVAILABLE",
-                message: `El profesor '${teacher.name}' no está disponible el ${WEEKDAY_LABELS[session.day] ?? session.day} en el bloque '${session.blockId}'.`,
-                entityIds: [session.requirementId, teacherId, session.blockId]
+                message: `El profesor '${teacher.name}' no está disponible el ${WEEKDAY_LABELS[session.day] ?? session.day} en el bloque '${bId}'.`,
+                entityIds: [session.requirementId, teacherId, bId]
               });
             }
           }
@@ -170,21 +183,19 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
 
       // Track courses in slot
       const slotKey = `${session.day}_${bId}`;
-      if (!slotCourses.has(slotKey)) {
-        slotCourses.set(slotKey, new Set());
+      let slotEntry = slotCourses.get(slotKey);
+      if (!slotEntry) {
+        slotEntry = { day: session.day, blockId: bId, courses: new Set() };
+        slotCourses.set(slotKey, slotEntry);
       }
-      slotCourses.get(slotKey)!.add(session.courseId);
+      slotEntry.courses.add(session.courseId);
     }
   }
 
   // Check double bookings
-  for (const [key, bookedSessions] of teacherBookings.entries()) {
-    if (bookedSessions.length > 1) {
-      const parts = key.split("_");
-      const teacherId = parts[0];
-      const day = parts[1];
-      const blockId = parts[2];
-
+  for (const booking of teacherBookings.values()) {
+    if (booking.sessions.length > 1) {
+      const { teacherId, day, blockId, sessions: bookedSessions } = booking;
       const teacher = period.teachers.find(t => t.id === teacherId);
       const teacherName = teacher ? teacher.name : teacherId;
       const courseNames = bookedSessions.map(s => {
@@ -195,7 +206,7 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
       issues.push({
         severity: "conflict",
         code: "TEACHER_DOUBLE_BOOKED",
-        message: `El profesor '${teacherName}' está duplicado el ${WEEKDAY_LABELS[day as keyof typeof WEEKDAY_LABELS] ?? day} en el bloque '${blockId}' para los cursos: ${courseNames}.`,
+        message: `El profesor '${teacherName}' está duplicado el ${WEEKDAY_LABELS[day] ?? day} en el bloque '${blockId}' para los cursos: ${courseNames}.`,
         entityIds: bookedSessions.map(s => s.requirementId).concat(teacherId)
       });
     }
@@ -203,12 +214,9 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
 
   // COURSE_CONFLICT: active rule has both courses in same day and block.
   for (const rule of activeRules) {
-    for (const [slotKey, coursesInSlot] of slotCourses.entries()) {
-      if (coursesInSlot.has(rule.courseAId) && coursesInSlot.has(rule.courseBId)) {
-        const parts = slotKey.split("_");
-        const day = parts[0];
-        const blockId = parts[1];
-
+    for (const slot of slotCourses.values()) {
+      if (slot.courses.has(rule.courseAId) && slot.courses.has(rule.courseBId)) {
+        const { day, blockId } = slot;
         const courseAName = coursesMap.get(rule.courseAId)?.name || rule.courseAId;
         const courseBName = coursesMap.get(rule.courseBId)?.name || rule.courseBId;
 
@@ -226,7 +234,7 @@ export function validatePlacedSessions(period: Period, sessions: PlacedSession[]
         issues.push({
           severity: "conflict",
           code: "COURSE_CONFLICT",
-          message: `Conflicto entre '${courseAName}' y '${courseBName}' el ${WEEKDAY_LABELS[day as keyof typeof WEEKDAY_LABELS] ?? day} en el bloque '${blockId}': ${rule.reason}.`,
+          message: `Conflicto entre '${courseAName}' y '${courseBName}' el ${WEEKDAY_LABELS[day] ?? day} en el bloque '${blockId}': ${rule.reason}.`,
           entityIds: [rule.id, rule.courseAId, rule.courseBId].concat(relevantSessions.map(s => s.requirementId))
         });
       }

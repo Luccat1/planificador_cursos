@@ -120,7 +120,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     e.preventDefault();
     if (!blockLabel.trim() || !blockStart || !blockEnd) return;
     const newBlock: TimeBlock = {
-      id: `b-${blockLabel.toLowerCase().replace(/\s+/g, "-")}`,
+      id: `b-${crypto.randomUUID()}`,
       label: blockLabel.trim(),
       start: blockStart,
       end: blockEnd,
@@ -297,7 +297,7 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <h3 style={{ fontFamily: "var(--font-title)", fontSize: "1.2rem", fontWeight: 600 }}>Configurar Disponibilidad</h3>
+                      <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.2rem", fontWeight: 600 }}>Configurar Disponibilidad</h3>
                       <p style={{ fontSize: "0.95rem", color: "var(--accent-color)", fontWeight: "bold" }}>
                         Docente: {teacher.name}
                       </p>

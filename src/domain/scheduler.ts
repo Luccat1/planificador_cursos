@@ -1,5 +1,6 @@
 import { Period, PlacedSession, ScheduleProposal, ScheduleIssue, Weekday, SessionRequirement } from "./types";
 import { validatePeriod, validatePlacedSessions } from "./validation";
+import { WEEKDAYS } from "./constants";
 
 function getRequirementsToPlace(period: Period): SessionRequirement[] {
   const activeCourses = period.courses.filter(c => c.active);
@@ -133,7 +134,6 @@ export function generateScheduleProposals(period: Period, maxAlternatives = 5): 
     }];
   }
 
-  const WEEKDAYS: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "friday"];
   const requirements = getRequirementsToPlace(period);
 
   const lockedReqs = requirements.filter(r => r.lockedDay && r.lockedBlockId);

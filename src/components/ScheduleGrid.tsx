@@ -1,5 +1,6 @@
 import { Lock, Zap } from "lucide-react";
 import { Period, PlacedSession, Weekday, ScheduleProposal, Course } from "../domain/types";
+import { WEEKDAYS, WEEKDAY_LABELS } from "../domain/constants";
 
 interface ScheduleGridProps {
   period: Period;
@@ -8,14 +9,6 @@ interface ScheduleGridProps {
   onSelectSession: (session: PlacedSession | null) => void;
   onSelectSlot: (day: Weekday, blockId: string) => void;
 }
-
-const WEEKDAYS: { key: Weekday; label: string }[] = [
-  { key: "monday", label: "Lunes" },
-  { key: "tuesday", label: "Martes" },
-  { key: "wednesday", label: "Miércoles" },
-  { key: "thursday", label: "Jueves" },
-  { key: "friday", label: "Viernes" }
-];
 
 interface LayoutInfo {
   session: PlacedSession;
@@ -91,6 +84,7 @@ export default function ScheduleGrid({
   const activeBlocks = period.timeBlocks.filter(b => b.active);
   const activeBlockIds = activeBlocks.map(b => b.id);
   const coursesMap = new Map(period.courses.map(c => [c.id, c]));
+  const teachersMap = new Map(period.teachers.map(t => [t.id, t]));
   const sessions = selectedProposal ? selectedProposal.sessions : [];
 
   const sessionsByDay: Record<Weekday, PlacedSession[]> = {
@@ -140,11 +134,11 @@ export default function ScheduleGrid({
 
       {/* Days Columns */}
       {WEEKDAYS.map(day => {
-        const daySessions = sessionsByDay[day.key];
+        const daySessions = sessionsByDay[day];
         const layoutSessions = computeDayLayout(daySessions, activeBlockIds, coursesMap);
 
         return (
-          <div key={day.key} style={{
+          <div key={day} style={{
             flex: 1,
             minWidth: "200px",
             display: "flex",
@@ -165,7 +159,7 @@ export default function ScheduleGrid({
               fontSize: "0.875rem",
               backgroundColor: "rgba(15, 23, 42, 0.4)"
             }}>
-              {day.label}
+              {WEEKDAY_LABELS[day]}
             </div>
 
             {/* Background Grid Cells and Absolute overlay */}
@@ -178,7 +172,7 @@ export default function ScheduleGrid({
                     key={block.id}
                     onClick={() => {
                       if (!hasSessionStartingHere) {
-                        onSelectSlot(day.key, block.id);
+                        onSelectSlot(day, block.id);
                       }
                     }}
                     style={{
@@ -231,10 +225,7 @@ export default function ScheduleGrid({
                         {course?.name || session.courseId}
                       </div>
                       <div className="session-teachers" style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-                        {session.teacherIds.map(tId => {
-                          const t = period.teachers.find(teacher => teacher.id === tId);
-                          return t ? t.name : tId;
-                        }).join(", ")}
+                        {session.teacherIds.map(tId => teachersMap.get(tId)?.name || tId).join(", ")}
                       </div>
                       <div className="session-status" style={{ alignSelf: "flex-end", marginTop: "auto" }}>
                         {isLocked

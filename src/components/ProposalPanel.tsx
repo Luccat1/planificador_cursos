@@ -15,7 +15,7 @@ export default function ProposalPanel({
   if (proposals.length === 0) {
     return (
       <div className="panel">
-        <h3 style={{ fontFamily: "var(--font-title)", marginBottom: "0.75rem", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
+        <h3 style={{ fontFamily: "var(--font-sans)", marginBottom: "0.75rem", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
         <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
           Presiona "Generar propuesta" para buscar horarios viables y optimizar según tus preferencias.
         </p>
@@ -25,7 +25,7 @@ export default function ProposalPanel({
 
   return (
     <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <h3 style={{ fontFamily: "var(--font-title)", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
+      <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "0.9375rem", fontWeight: 600 }}>Propuestas de Horario</h3>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {proposals.map(proposal => {

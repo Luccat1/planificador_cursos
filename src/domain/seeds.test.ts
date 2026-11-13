@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createDefaultPeriod } from "./seeds";
 
-describe("Types and seeds", () => {
+describe("Seeds", () => {
   it("creates a default period with 7 active time blocks", () => {
     const period = createDefaultPeriod("2026-2");
     expect(period.name).toBe("2026-2");

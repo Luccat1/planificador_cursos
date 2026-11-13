@@ -52,7 +52,8 @@ export function parsePeriodJson(jsonStr: string): Period {
         c !== null &&
         typeof c === "object" &&
         typeof (c as Record<string, unknown>).id === "string" &&
-        typeof (c as Record<string, unknown>).name === "string"
+        typeof (c as Record<string, unknown>).name === "string" &&
+        Array.isArray((c as Record<string, unknown>).teacherIds)
     )
   ) {
     throw new Error("La lista de cursos contiene elementos inválidos o nulos.");

@@ -321,7 +321,7 @@ export default function App() {
               }}
             />
             <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <h3 style={{ fontFamily: "var(--font-title)", fontSize: "0.9375rem", fontWeight: 600 }}>Instrucciones rápidas</h3>
+              <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "0.9375rem", fontWeight: 600 }}>Instrucciones rápidas</h3>
               <ul
                 style={{
                   paddingLeft: "1.1rem",

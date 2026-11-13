@@ -1,5 +1,14 @@
 import { Weekday } from "./types";
 
+/** Single source of truth for ordered weekdays */
+export const WEEKDAYS: Weekday[] = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+];
+
 /** Single source of truth for weekday → Spanish label */
 export const WEEKDAY_LABELS: Record<Weekday, string> = {
   monday: "Lunes",

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
 import { Period, PlacedSession, Weekday, SessionRequirement } from "../domain/types";
+import { WEEKDAY_LABELS } from "../domain/constants";
 
 interface SidePanelProps {
   period: Period;
@@ -10,14 +11,6 @@ interface SidePanelProps {
   onClearSelection: () => void;
 }
 
-const DAY_LABELS: Record<Weekday, string> = {
-  monday: "Lunes",
-  tuesday: "Martes",
-  wednesday: "Miércoles",
-  thursday: "Jueves",
-  friday: "Viernes"
-};
-
 export default function SidePanel({
   period,
   selectedSession,
@@ -26,6 +19,7 @@ export default function SidePanel({
   onClearSelection
 }: SidePanelProps) {
   const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const coursesMap = new Map(period.courses.map(c => [c.id, c]));
 
   // Check if current selected session is locked in requirements
@@ -79,6 +73,17 @@ export default function SidePanel({
     e.preventDefault();
     if (!selectedSlot || !selectedCourseId) return;
 
+    const course = coursesMap.get(selectedCourseId);
+    if (!course) return;
+
+    const currentReqsCount = period.requirements.filter(r => r.courseId === selectedCourseId).length;
+    if (currentReqsCount >= course.weeklySessions) {
+      setErrorMessage(
+        `El curso '${course.name}' ya tiene asignado el máximo permitido de sesiones semanales (${course.weeklySessions}).`
+      );
+      return;
+    }
+
     // Create a new requirement locked to this day and block
     const newReq: SessionRequirement = {
       id: `req-${selectedCourseId}-${Date.now()}`,
@@ -92,15 +97,22 @@ export default function SidePanel({
       requirements: [...period.requirements, newReq]
     });
     setSelectedCourseId("");
+    setErrorMessage(null);
+    onClearSelection();
+  };
+
+  const handleClearSelection = () => {
+    setErrorMessage(null);
+    setSelectedCourseId("");
     onClearSelection();
   };
 
   return (
     <div className="right-section">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ fontFamily: "var(--font-title)" }}>Panel de Edición</h3>
+        <h3 style={{ fontFamily: "var(--font-sans)" }}>Panel de Edición</h3>
         {(selectedSession || selectedSlot) && (
-          <button className="btn btn-outline btn-sm" onClick={onClearSelection}>Desseleccionar</button>
+          <button className="btn btn-outline btn-sm" onClick={handleClearSelection}>Desseleccionar</button>
         )}
       </div>
 
@@ -121,7 +133,7 @@ export default function SidePanel({
               {selectedSession.teacherIds.map(tId => period.teachers.find(t => t.id === tId)?.name || tId).join(", ")}
             </div>
             <div>
-              <strong style={{ color: "var(--text-muted)" }}>Día:</strong> {DAY_LABELS[selectedSession.day]}
+              <strong style={{ color: "var(--text-muted)" }}>Día:</strong> {WEEKDAY_LABELS[selectedSession.day]}
             </div>
             <div>
               <strong style={{ color: "var(--text-muted)" }}>Bloque:</strong> {selectedSession.blockId}
@@ -145,7 +157,7 @@ export default function SidePanel({
           <div>
             <h4 style={{ fontWeight: 600 }}>Celda Seleccionada</h4>
             <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-              {DAY_LABELS[selectedSlot.day]} - Bloque {selectedSlot.blockId}
+              {WEEKDAY_LABELS[selectedSlot.day]} - Bloque {selectedSlot.blockId}
             </p>
           </div>
 
@@ -155,7 +167,10 @@ export default function SidePanel({
               <select
                 className="form-control"
                 value={selectedCourseId}
-                onChange={e => setSelectedCourseId(e.target.value)}
+                onChange={e => {
+                  setSelectedCourseId(e.target.value);
+                  setErrorMessage(null);
+                }}
               >
                 <option value="">Selecciona un curso...</option>
                 {period.courses.filter(c => c.active).map(c => (
@@ -163,6 +178,20 @@ export default function SidePanel({
                 ))}
               </select>
             </div>
+            {errorMessage && (
+              <div
+                style={{
+                  color: "var(--error-color)",
+                  backgroundColor: "var(--error-bg)",
+                  border: "1px solid var(--error-color)",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "0.8125rem"
+                }}
+              >
+                {errorMessage}
+              </div>
+            )}
             <button type="submit" className="btn btn-primary" disabled={!selectedCourseId}>
               <Lock size={14} aria-hidden="true" /> Confirmar Ubicación
             </button>
