@@ -43,6 +43,13 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
   const [prefValue, setPrefValue] = useState("");
   const [prefWeight, setPrefWeight] = useState(1);
 
+  // Inline edit states
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
+  // Natural language preference input
+  const [nlPrefText, setNlPrefText] = useState("");
+
   // Helper to update parts of the period
   const updatePeriod = (updates: Partial<Period>) => {
     onChangePeriod({
@@ -203,6 +210,64 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
     updatePeriod({
       preferences: period.preferences.map(p => p.id === id ? { ...p, active: !p.active } : p)
     });
+  };
+
+  const handleSaveTeacher = () => {
+    if (!editingTeacher?.name.trim()) return;
+    updatePeriod({ teachers: period.teachers.map(t => t.id === editingTeacher.id ? { ...editingTeacher, name: editingTeacher.name.trim() } : t) });
+    setEditingTeacher(null);
+  };
+
+  const handleSaveCourse = () => {
+    if (!editingCourse?.name.trim()) return;
+    updatePeriod({ courses: period.courses.map(c => c.id === editingCourse.id ? { ...editingCourse, name: editingCourse.name.trim() } : c) });
+    setEditingCourse(null);
+  };
+
+  const handleSaveBlock = () => {
+    if (!editingBlock?.label.trim() || !editingBlock.start || !editingBlock.end) return;
+    updatePeriod({ timeBlocks: period.timeBlocks.map(b => b.id === editingBlock.id ? { ...editingBlock, label: editingBlock.label.trim() } : b) });
+    setEditingBlock(null);
+  };
+
+  const parseNaturalPreferences = (text: string): Preference[] => {
+    const DAYS_ES: Record<string, Weekday> = {
+      lunes: "monday", martes: "tuesday", "miércoles": "wednesday",
+      miercoles: "wednesday", jueves: "thursday", viernes: "friday"
+    };
+    const parts = text.split(/[,;]|\sy\s|\so\s/i).map(s => s.trim()).filter(Boolean);
+    return parts.flatMap(part => {
+      const lower = part.toLowerCase();
+      let scope: PreferenceScope = "period";
+      let targetId = "";
+      const paraMatch = lower.match(/\bpara\s+(?:el\s+(?:curso|profesor)\s+)?(.+)/);
+      if (paraMatch) {
+        const targetName = paraMatch[1].trim();
+        const course = period.courses.find(c => c.name.toLowerCase().includes(targetName));
+        const teacher = period.teachers.find(t => t.name.toLowerCase().includes(targetName));
+        if (course) { scope = "course"; targetId = course.id; }
+        else if (teacher) { scope = "teacher"; targetId = teacher.id; }
+      }
+      let detectedDay = "";
+      for (const [es, en] of Object.entries(DAYS_ES)) {
+        if (lower.includes(es)) { detectedDay = en; break; }
+      }
+      let kind: PreferenceKind | null = null;
+      let value = "";
+      if (/\bmañana\b|\bam\b|\bmatutino\b/.test(lower)) { kind = "preferMorning"; }
+      else if (/\bevitar?\b|\bno\b|\bsin\b/.test(lower) && detectedDay) { kind = "avoidDay"; value = detectedDay; }
+      else if (/\bpreferir?\b|\bprefiere\b|\bconcentra[r]?\b/.test(lower) && detectedDay) { kind = "preferDay"; value = detectedDay; }
+      else if (/\bdistribuir?\b|\bdistribuye\b|\brepartir?\b|\bspread\b/.test(lower)) { kind = "spreadSessions"; }
+      if (!kind) return [];
+      return [{ id: `pref-${crypto.randomUUID()}`, scope, targetId, kind, value, weight: 1, active: true }];
+    });
+  };
+
+  const handleParseAndAddPrefs = () => {
+    const parsed = parseNaturalPreferences(nlPrefText);
+    if (parsed.length === 0) { alert("No se reconocieron preferencias. Intenta con: 'concentra en mañana', 'evita viernes', 'prefiere lunes', 'distribuye sesiones'."); return; }
+    updatePeriod({ preferences: [...period.preferences, ...parsed] });
+    setNlPrefText("");
   };
 
   return (
@@ -410,26 +475,40 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
                   <tbody>
                     {period.teachers.map(t => (
                       <tr key={t.id}>
-                        <td>
-                          <label className="checkbox-container">
-                            <input type="checkbox" checked={t.active} onChange={() => toggleTeacherActive(t.id)} />
-                            <div className="checkbox-box"></div>
-                            <span>{t.active ? "Activo" : "Inactivo"}</span>
-                          </label>
-                        </td>
-                        <td>{t.name}</td>
-                        <td>{getAvailabilitySummary(t)}</td>
-                        <td style={{ textAlign: "right" }}>
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-sm"
-                            style={{ marginRight: "0.5rem" }}
-                            onClick={() => setEditingAvailabilityTeacherId(t.id)}
-                          >
-                            Disponibilidad
-                          </button>
-                          <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteTeacher(t.id)}>Eliminar</button>
-                        </td>
+                        {editingTeacher !== null && editingTeacher.id === t.id ? (
+                          <>
+                            <td>
+                              <label className="checkbox-container">
+                                <input type="checkbox" checked={editingTeacher.active} onChange={() => setEditingTeacher({ ...editingTeacher, active: !editingTeacher.active })} />
+                                <div className="checkbox-box"></div>
+                                <span>{editingTeacher.active ? "Activo" : "Inactivo"}</span>
+                              </label>
+                            </td>
+                            <td><input className="form-control" value={editingTeacher.name} onChange={e => setEditingTeacher({ ...editingTeacher, name: e.target.value })} /></td>
+                            <td>{getAvailabilitySummary(t)}</td>
+                            <td style={{ textAlign: "right" }}>
+                              <button type="button" className="btn btn-primary btn-sm" style={{ marginRight: "0.5rem" }} onClick={handleSaveTeacher}>Guardar</button>
+                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingTeacher(null)}>Cancelar</button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>
+                              <label className="checkbox-container">
+                                <input type="checkbox" checked={t.active} onChange={() => toggleTeacherActive(t.id)} />
+                                <div className="checkbox-box"></div>
+                                <span>{t.active ? "Activo" : "Inactivo"}</span>
+                              </label>
+                            </td>
+                            <td>{t.name}</td>
+                            <td>{getAvailabilitySummary(t)}</td>
+                            <td style={{ textAlign: "right" }}>
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }} onClick={() => setEditingTeacher({ ...t })}>Editar</button>
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }} onClick={() => setEditingAvailabilityTeacherId(t.id)}>Disponibilidad</button>
+                              <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteTeacher(t.id)}>Eliminar</button>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                     {period.teachers.length === 0 && (
@@ -513,24 +592,63 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
                 <tbody>
                   {period.courses.map(c => (
                     <tr key={c.id}>
-                      <td>
-                        <label className="checkbox-container">
-                          <input type="checkbox" checked={c.active} onChange={() => toggleCourseActive(c.id)} />
-                          <div className="checkbox-box"></div>
-                          <span>{c.active ? "Activo" : "Inactivo"}</span>
-                        </label>
-                      </td>
-                      <td>{c.name}</td>
-                      <td>
-                        {c.teacherIds.map(tId => {
-                          const t = period.teachers.find(teacher => teacher.id === tId);
-                          return t ? t.name : tId;
-                        }).join(", ")}
-                      </td>
-                      <td>{c.weeklySessions} sesiones ({c.blocksPerSession} clave(s) c/u)</td>
-                      <td style={{ textAlign: "right" }}>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCourse(c.id)}>Eliminar</button>
-                      </td>
+                      {editingCourse !== null && editingCourse.id === c.id ? (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={editingCourse.active} onChange={() => setEditingCourse({ ...editingCourse, active: !editingCourse.active })} />
+                              <div className="checkbox-box"></div>
+                              <span>{editingCourse.active ? "Activo" : "Inactivo"}</span>
+                            </label>
+                          </td>
+                          <td><input className="form-control" value={editingCourse.name} onChange={e => setEditingCourse({ ...editingCourse, name: e.target.value })} /></td>
+                          <td>
+                            <select multiple className="form-control" style={{ height: "60px", padding: "4px" }}
+                              value={editingCourse.teacherIds}
+                              onChange={e => setEditingCourse({ ...editingCourse, teacherIds: Array.from(e.target.selectedOptions).map(o => o.value) })}>
+                              {period.teachers.filter(t => t.active).map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                              <input type="number" min={1} className="form-control" style={{ width: "55px" }} value={editingCourse.weeklySessions}
+                                onChange={e => setEditingCourse({ ...editingCourse, weeklySessions: parseInt(e.target.value, 10) || 1 })} />
+                              <span style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}>ses. ×</span>
+                              <input type="number" min={1} className="form-control" style={{ width: "55px" }} value={editingCourse.blocksPerSession}
+                                onChange={e => setEditingCourse({ ...editingCourse, blocksPerSession: parseInt(e.target.value, 10) || 1 })} />
+                              <span style={{ fontSize: "0.8rem" }}>cl.</span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-primary btn-sm" style={{ marginRight: "0.5rem" }} onClick={handleSaveCourse}>Guardar</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setEditingCourse(null)}>Cancelar</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={c.active} onChange={() => toggleCourseActive(c.id)} />
+                              <div className="checkbox-box"></div>
+                              <span>{c.active ? "Activo" : "Inactivo"}</span>
+                            </label>
+                          </td>
+                          <td>{c.name}</td>
+                          <td>
+                            {c.teacherIds.map(tId => {
+                              const t = period.teachers.find(teacher => teacher.id === tId);
+                              return t ? t.name : tId;
+                            }).join(", ")}
+                          </td>
+                          <td>{c.weeklySessions} sesiones ({c.blocksPerSession} clave(s) c/u)</td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }} onClick={() => setEditingCourse({ ...c })}>Editar</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCourse(c.id)}>Eliminar</button>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                   {period.courses.length === 0 && (
@@ -593,18 +711,45 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
                 <tbody>
                   {period.timeBlocks.map(b => (
                     <tr key={b.id}>
-                      <td>
-                        <label className="checkbox-container">
-                          <input type="checkbox" checked={b.active} onChange={() => toggleBlockActive(b.id)} />
-                          <div className="checkbox-box"></div>
-                          <span>{b.active ? "Activa" : "Inactiva"}</span>
-                        </label>
-                      </td>
-                      <td>{b.label}</td>
-                      <td>{b.start} - {b.end}</td>
-                      <td style={{ textAlign: "right" }}>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteBlock(b.id)}>Eliminar</button>
-                      </td>
+                      {editingBlock !== null && editingBlock.id === b.id ? (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={editingBlock.active} onChange={() => setEditingBlock({ ...editingBlock, active: !editingBlock.active })} />
+                              <div className="checkbox-box"></div>
+                              <span>{editingBlock.active ? "Activa" : "Inactiva"}</span>
+                            </label>
+                          </td>
+                          <td><input className="form-control" value={editingBlock.label} onChange={e => setEditingBlock({ ...editingBlock, label: e.target.value })} /></td>
+                          <td>
+                            <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                              <input type="time" className="form-control" value={editingBlock.start} onChange={e => setEditingBlock({ ...editingBlock, start: e.target.value })} />
+                              <span>-</span>
+                              <input type="time" className="form-control" value={editingBlock.end} onChange={e => setEditingBlock({ ...editingBlock, end: e.target.value })} />
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-primary btn-sm" style={{ marginRight: "0.5rem" }} onClick={handleSaveBlock}>Guardar</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setEditingBlock(null)}>Cancelar</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>
+                            <label className="checkbox-container">
+                              <input type="checkbox" checked={b.active} onChange={() => toggleBlockActive(b.id)} />
+                              <div className="checkbox-box"></div>
+                              <span>{b.active ? "Activa" : "Inactiva"}</span>
+                            </label>
+                          </td>
+                          <td>{b.label}</td>
+                          <td>{b.start} - {b.end}</td>
+                          <td style={{ textAlign: "right" }}>
+                            <button className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }} onClick={() => setEditingBlock({ ...b })}>Editar</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteBlock(b.id)}>Eliminar</button>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -695,6 +840,20 @@ export default function DataTables({ period, onChangePeriod }: DataTablesProps) 
 
         {activeTab === "preferences" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label>Agregar preferencias en lenguaje natural</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder='Ej: "concentra en mañana, evita viernes, para Español 1 prefiere lunes"'
+                  value={nlPrefText}
+                  onChange={e => setNlPrefText(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleParseAndAddPrefs(); } }}
+                />
+              </div>
+              <button type="button" className="btn btn-primary" onClick={handleParseAndAddPrefs}>Interpretar y Agregar</button>
+            </div>
             <form onSubmit={handleAddPref} style={{ display: "grid", gridTemplateColumns: "120px 150px 180px 150px 80px auto", gap: "1rem", alignItems: "flex-end" }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Alcance</label>
