@@ -14,3 +14,4 @@ self.onmessage = (e: MessageEvent<{ period: Period; maxAlternatives?: number }>)
     });
   }
 };
+

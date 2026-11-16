@@ -11,3 +11,4 @@ describe("runSchedulerAsync", () => {
     expect(proposals[0].sessions.length).toBeGreaterThan(0);
   });
 });
+
