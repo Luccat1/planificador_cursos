@@ -61,7 +61,7 @@ La confección manual de mallas horarias universitarias es un problema complejo 
 
 ## 💡 Flujo de Trabajo Recomendado
 
-```
+```text
 1. Carga de Datos      2. Restricciones       3. Optimización        4. Consolidación
 ┌──────────────┐      ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
 │ Importar     │ ───► │ Grupos,      │  ───► │ Generar      │  ───► │ Bloquear (🔒)│
@@ -96,7 +96,7 @@ La aplicación permite la interoperabilidad completa con hojas de cálculo y cop
 
 La plantilla de importación cuenta con pestañas estandarizadas. Las filas de ejemplo que comienzan con el prefijo `Ej:` son ignoradas automáticamente por el importador.
 
-```
+```text
 📁 Plantilla_Planificador.xlsx
 ├── 📄 Instrucciones      (Guía de uso y reglas de validación)
 ├── 📄 Profesores         (Identificación y estado de docentes)
@@ -110,17 +110,21 @@ La plantilla de importación cuenta con pestañas estandarizadas. Las filas de e
 ### Especificación Detallada de Columnas
 
 #### 1. `Profesores`
+
 - **`id`**: Identificador alfanumérico sin espacios (ej. `t-1`, `prof-gonzalez`).
 - **`nombre`**: Nombre completo del docente.
 - **`activo`**: `SÍ` o `NO`.
 
 #### 2. `Disponibilidad`
+
 *(Opcional: Si un profesor no se lista en esta hoja, se asume disponibilidad total).*
+
 - **`profesor_id`**: ID del docente (debe coincidir con la hoja `Profesores`).
 - **`dia`**: Día en español (`Lunes`, `Martes`, `Miércoles`, `Jueves`, `Viernes`).
 - **`clave_id`**: ID de la clave horaria correspondiente (ej. `1-2`).
 
 #### 3. `Cursos`
+
 - **`id`**: Código identificador único del curso (ej. `c-101`, `calc-1`).
 - **`nombre`**: Nombre descriptivo de la materia.
 - **`profesores`**: Lista de IDs de profesores separados por coma (ej. `t-1` o `t-1, t-2`).
@@ -129,18 +133,21 @@ La plantilla de importación cuenta con pestañas estandarizadas. Las filas de e
 - **`activo`**: `SÍ` o `NO`.
 
 #### 4. `Claves horarias`
+
 - **`id`**: Identificador del bloque (ej. `1-2`, `3-4`).
 - **`clave`**: Etiqueta visible en la grilla (ej. `1-2`).
 - **`inicio`** / **`termino`**: Horarios en formato `HH:MM` (ej. `08:15` / `09:25`).
 - **`activo`**: `SÍ` o `NO`.
 
 #### 5. `Restricciones`
+
 - **`id`**: Identificador único de la regla (ej. `cr-1`).
 - **`curso_a`** / **`curso_b`**: IDs de los cursos que **no** pueden dictarse simultáneamente.
 - **`motivo`**: Razón o justificación del conflicto (ej. `Mismo nivel / laboratorio compartido`).
 - **`activo`**: `SÍ` o `NO`.
 
 #### 6. `Preferencias`
+
 - **`id`**: Identificador de la regla de preferencia (ej. `pref-1`).
 - **`alcance`**: Alcance de la regla (`period`, `course`, `teacher`).
 - **`objetivo`**: ID del curso o profesor correspondiente (dejar vacío si el alcance es `period`).
@@ -159,7 +166,7 @@ La plantilla de importación cuenta con pestañas estandarizadas. Las filas de e
 
 El proyecto está diseñado bajo una estricta separación entre la **lógica de dominio** (TypeScript puro sin dependencias de React) y la **capa de interfaz de usuario**:
 
-```
+```text
 planificador_cursos/
 ├── .github/
 │   └── workflows/
