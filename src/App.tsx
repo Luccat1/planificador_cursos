@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createDefaultPeriod, createDemoPeriod } from "./domain/seeds";
-import { generateScheduleProposals } from "./domain/scheduler";
+import { runSchedulerAsync } from "./domain/schedulerRunner";
 import {
   serializePeriod,
   parsePeriodJson,
   savePeriodToStorage,
   loadPeriodFromStorage,
 } from "./domain/storage";
-import { buildExcelTemplate, parseExcelTemplate } from "./domain/excel";
 import { validatePeriod } from "./domain/validation";
 import { Period, ScheduleProposal, PlacedSession, Weekday } from "./domain/types";
 import ScheduleGrid from "./components/ScheduleGrid";
@@ -83,8 +82,9 @@ export default function App() {
   };
 
   // Excel actions
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
+      const { buildExcelTemplate } = await import("./domain/excel");
       const buffer = buildExcelTemplate(period);
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -102,9 +102,10 @@ export default function App() {
     }
   };
 
-  const handleDownloadDemoExcel = () => {
+  const handleDownloadDemoExcel = async () => {
     try {
       const demoPeriod = createDemoPeriod();
+      const { buildExcelTemplate } = await import("./domain/excel");
       const buffer = buildExcelTemplate(demoPeriod);
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -129,9 +130,10 @@ export default function App() {
     const inputEl = excelInputRef.current;
     if (!files || files.length === 0) return;
 
-    fileReader.onload = (event) => {
+    fileReader.onload = async (event) => {
       try {
         const buffer = event.target?.result as ArrayBuffer;
+        const { parseExcelTemplate } = await import("./domain/excel");
         const parsed = parseExcelTemplate(buffer);
 
         // Validate imported period before applying
@@ -177,29 +179,26 @@ export default function App() {
     fileReader.readAsArrayBuffer(files[0]);
   };
 
-  // Scheduler action — wrapped in try/catch for stack overflows (fix #4)
-  const handleGenerate = () => {
+  // Scheduler action — runs asynchronously via Web Worker or non-blocking runner
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    // Defer to next tick so the spinner renders before synchronous work starts
-    setTimeout(() => {
-      try {
-        const results = generateScheduleProposals(period, 5);
-        setProposals(results);
-        setSelectedProposal(results[0] || null);
-        setSelectedSession(null);
-        setSelectedSlot(null);
-      } catch (err) {
-        if (err instanceof RangeError) {
-          alert(
-            "Error: la búsqueda agotó el stack (demasiadas restricciones). Reduce el número de cursos o bloques e intenta de nuevo."
-          );
-        } else {
-          alert("Error al generar propuesta: " + (err as Error).message);
-        }
-      } finally {
-        setIsGenerating(false);
+    try {
+      const results = await runSchedulerAsync(period, 5);
+      setProposals(results);
+      setSelectedProposal(results[0] || null);
+      setSelectedSession(null);
+      setSelectedSlot(null);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        alert(
+          "Error: la búsqueda agotó el stack (demasiadas restricciones). Reduce el número de cursos o bloques e intenta de nuevo."
+        );
+      } else {
+        alert("Error al generar propuesta: " + (err as Error).message);
       }
-    }, 0);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSelectSession = (session: PlacedSession | null) => {

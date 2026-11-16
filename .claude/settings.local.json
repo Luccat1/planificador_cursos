@@ -16,7 +16,9 @@
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
       "Bash(npm test:*)",
-      "Bash(\"C:\\\\Users\\\\Usuario\\\\Documents\\\\code\\\\planificador_cursos\\\\README.md\")"
+      "Bash(\"C:\\\\Users\\\\Usuario\\\\Documents\\\\code\\\\planificador_cursos\\\\README.md\")",
+      "Bash(npx.cmd -y modern-web-guidance@latest search \"web app performance optimization\" --skill-version 2026_11_10-47b4c80e 2>&1)",
+      "Bash(npx:*)"
     ]
   }
 }

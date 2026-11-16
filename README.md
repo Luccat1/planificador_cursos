@@ -5,7 +5,7 @@
 [![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
-[![Vitest](https://img.shields.io/badge/Tests-35%20passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Tests-36%20passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 > Aplicación web interactiva y cliente-primero (*local-first*) para la **planificación inteligente de horarios académicos universitarios**. Resuelve problemas combinatorios de asignación de bloques mediante un algoritmo de backtracking con satisfacción de restricciones y optimización de preferencias pedagógicas.
@@ -171,15 +171,20 @@ planificador_cursos/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml        # CI/CD: Pruebas automáticas y despliegue a GitHub Pages
+├── public/
+│   └── favicon.svg           # Ícono vectorial de calendario académico
 ├── src/
 │   ├── domain/               # 🧠 Lógica de dominio pura (100% testeable sin DOM)
 │   │   ├── types.ts          # Definiciones de tipos e interfaces de datos
 │   │   ├── scheduler.ts      # Motor de backtracking y cálculo de puntajes
+│   │   ├── schedulerRunner.ts# Ejecutor asíncrono con soporte de Web Worker
 │   │   ├── validation.ts     # Verificación de restricciones duras e incompatibilidades
 │   │   ├── storage.ts        # Adaptador de persistencia con localStorage
 │   │   ├── excel.ts          # Parser, validación y serializador Excel (SheetJS)
 │   │   ├── seeds.ts          # Datos demostrativos iniciales
 │   │   └── constants.ts      # Etiquetas de días, claves y constantes globales
+│   ├── workers/              # ⚡ Hilos de ejecución en segundo plano (Web Workers)
+│   │   └── scheduler.worker.ts # Worker para no congelar la UI durante la optimización
 │   ├── components/           # 🎨 Componentes visuales interactivos (React 19)
 │   │   ├── ScheduleGrid.tsx  # Grilla horaria interactiva con soporte multi-columna
 │   │   ├── DataTables.tsx    # Tablas de administración de entidades
@@ -188,11 +193,11 @@ planificador_cursos/
 │   ├── App.tsx               # Orquestación de estado global y vistas principales
 │   ├── main.tsx              # Punto de entrada de la aplicación
 │   └── styles.css            # Hoja de estilos con variables CSS modernas
-├── tests/                    # 🧪 Pruebas unitarias con Vitest (35 tests)
-├── index.html                # Plantilla base SPA
+├── tests/                    # 🧪 Pruebas unitarias con Vitest (36 tests)
+├── index.html                # Plantilla base SPA con metadatos y preconnects
 ├── package.json              # Manifiesto de dependencias y scripts
 ├── tsconfig.json             # Configuración de TypeScript estricto
-└── vite.config.ts            # Configuración de compilación y base path de Vite
+└── vite.config.ts            # Configuración de compilación, 404 handler y base path
 ```
 
 ---
@@ -250,7 +255,7 @@ planificador_cursos/
 | `npm run dev` | Inicia el servidor de desarrollo local con recarga en caliente (HMR). |
 | `npm run build` | Compila el código TypeScript y genera el bundle optimizado en `/dist`. |
 | `npm run preview` | Levanta un servidor local para previsualizar la compilación de producción. |
-| `npm test` | Ejecuta la suite completa de 35 pruebas unitarias con Vitest. |
+| `npm test` | Ejecuta la suite completa de 36 pruebas unitarias con Vitest. |
 | `npm run test:watch` | Ejecuta las pruebas en modo interactivo y continuo ante cambios. |
 
 ---

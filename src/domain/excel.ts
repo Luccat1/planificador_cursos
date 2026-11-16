@@ -9,6 +9,10 @@ function isDescriptionRow(row: any): boolean {
   );
 }
 
+function isSafeId(id: string): boolean {
+  return id !== "__proto__" && id !== "constructor" && id !== "prototype";
+}
+
 export function buildExcelTemplate(period: Period): ArrayBuffer {
   const wb = XLSX.utils.book_new();
 
@@ -209,7 +213,7 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
       const blockId = String(row.clave_id || "").trim();
 
       const day = spanishToEnglishDay[spanishDay];
-      if (teacherId && day && blockId) {
+      if (teacherId && day && blockId && isSafeId(teacherId) && isSafeId(blockId)) {
         if (!teacherAvailabilities.has(teacherId)) {
           teacherAvailabilities.set(teacherId, {});
         }
@@ -232,6 +236,7 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
     for (const row of data) {
       if (row.id && row.nombre) {
         const teacherId = String(row.id).trim();
+        if (!isSafeId(teacherId)) continue;
         teachers.push({
           id: teacherId,
           name: String(row.nombre).trim(),
@@ -249,11 +254,13 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
 
     for (const row of data) {
       if (row.id && row.nombre) {
+        const courseId = String(row.id).trim();
+        if (!isSafeId(courseId)) continue;
         const teacherIds = row.profesores
-          ? String(row.profesores).split(",").map(s => s.trim()).filter(Boolean)
+          ? String(row.profesores).split(",").map(s => s.trim()).filter(s => Boolean(s) && isSafeId(s))
           : [];
         courses.push({
-          id: String(row.id).trim(),
+          id: courseId,
           name: String(row.nombre).trim(),
           teacherIds,
           weeklySessions: parseInt(row.sesiones_semana, 10) || 1,
@@ -271,8 +278,10 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
 
     for (const row of data) {
       if (row.id && row.clave) {
+        const blockId = String(row.id).trim();
+        if (!isSafeId(blockId)) continue;
         timeBlocks.push({
-          id: String(row.id).trim(),
+          id: blockId,
           label: String(row.clave).trim(),
           start: String(row.inicio || "").trim(),
           end: String(row.termino || "").trim(),
@@ -289,10 +298,14 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
 
     for (const row of data) {
       if (row.id && row.curso_a && row.curso_b) {
+        const ruleId = String(row.id).trim();
+        const courseAId = String(row.curso_a).trim();
+        const courseBId = String(row.curso_b).trim();
+        if (!isSafeId(ruleId) || !isSafeId(courseAId) || !isSafeId(courseBId)) continue;
         conflictRules.push({
-          id: String(row.id).trim(),
-          courseAId: String(row.curso_a).trim(),
-          courseBId: String(row.curso_b).trim(),
+          id: ruleId,
+          courseAId,
+          courseBId,
           reason: String(row.motivo || "").trim(),
           active: parseBoolean(row.activo)
         });
@@ -307,13 +320,15 @@ export function parseExcelTemplate(buffer: ArrayBuffer): Period {
 
     for (const row of data) {
       if (row.id && row.alcance && row.tipo) {
+        const prefId = String(row.id).trim();
+        if (!isSafeId(prefId)) continue;
         const scope = String(row.alcance).trim();
         const kind = String(row.tipo).trim();
         // Validate against known enum values — skip invalid rows (fix #6)
         if (!(VALID_PREFERENCE_SCOPES as ReadonlyArray<string>).includes(scope)) continue;
         if (!(VALID_PREFERENCE_KINDS as ReadonlyArray<string>).includes(kind)) continue;
         preferences.push({
-          id: String(row.id).trim(),
+          id: prefId,
           scope: scope as Preference["scope"],
           targetId: String(row.objetivo || "").trim(),
           kind: kind as Preference["kind"],
